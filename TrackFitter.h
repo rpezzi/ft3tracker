@@ -48,6 +48,7 @@ public:
   /// Return the maximum chi2 above which the track can be considered as
   /// abnormal
   static constexpr double getMaxChi2() { return SMaxChi2; }
+  bool mVerbose = false;
 
 private:
   bool computeCluster(FT3Track &track, int cluster);
@@ -62,7 +63,6 @@ private:
       0.065, 0.065, 0.075, 0.075, 0.035, 0.035, 0.035, 0.035, 0.035, 0.035};
 
   bool mFieldON = true;
-  bool mVerbose = true;
 };
 
 // Functions to estimate momentum and charge from track curvature

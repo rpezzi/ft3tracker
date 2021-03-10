@@ -8,9 +8,12 @@
 using o2::ft3::FT3Track;
 using o2::itsmft::Hit;
 
+bool DEBUG_VERBOSE = false;
+
 void ft3Tracker() {
 
   o2::ft3::TrackFitter fitter;
+  fitter.mVerbose = DEBUG_VERBOSE;
   fitter.setBz(-5.0);
 
   std::string hitfile = "o2sim_HitsFT3.root";
@@ -38,7 +41,9 @@ void ft3Tracker() {
     hitTree->GetEntry(event);
 
     Int_t nHits = hit->size();
-    std::cout << " Event " << event << " has " << nHits << " hits" << std::endl;
+    if (DEBUG_VERBOSE) {
+      std::cout << " Building tracks at event " << event << std::endl;
+    }
 
     auto &FwdTracksMap = allFwdTracks.at(event);
     for (Int_t iHit = 0; iHit < nHits; iHit++) { // Attach hits to tracks
@@ -74,13 +79,15 @@ void ft3Tracker() {
           recoTrackIDs->emplace_back(trackID);
         }
       }
-      cout << "\n[TrackID = " << trackID << ", nHits = " << nHits
-           << "] LayerIDs, zCoord => ";
-      for (auto i = 0; i < nHits; i++) {
-        std::cout << " " << track.getLayers()[i] << ", "
-                  << track.getZCoordinates()[i] << " ";
+      if (DEBUG_VERBOSE) {
+        cout << "\n[TrackID = " << trackID << ", nHits = " << nHits
+             << "] LayerIDs, zCoord => ";
+        for (auto i = 0; i < nHits; i++) {
+          std::cout << " " << track.getLayers()[i] << ", "
+                    << track.getZCoordinates()[i] << " ";
+        }
+        std::cout << std::endl;
       }
-      std::cout << std::endl;
       ++iter;
     }
 

@@ -35,7 +35,6 @@ public:
   const std::vector<Int_t> &getLayers() const { return mLayer; }
   const std::vector<Int_t> &getHitsId() const { return mHitId; }
   void addHit(const Hit &ht, const Int_t hitId);
-  std::size_t getNumberOfPoints() const { return mX.size(); }
   void sort();
 
 private:
@@ -59,6 +58,7 @@ inline void FT3Track::addHit(const Hit &ht, const Int_t hitId) {
   mSigmaY2.emplace_back(3e-3);
   mLayer.emplace_back(ht.GetDetectorID());
   mHitId.emplace_back(hitId);
+  setNumberOfPoints(mX.size());
 }
 
 //_________________________________________________________________________________________________

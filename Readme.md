@@ -12,6 +12,13 @@ Output: `o2sim_HitsFT3.root`
 Output: `ft3tracks.root`
 
 ### 3. Assessment histograms
+#### Layer hit densities
+
+`$ root.exe -b -q ft3Occupancy.C+`
+
+Output: `ft3Occupancy.root`
+
+#### Tracking evalutaion
 `$ root.exe -q -b FT3TrackerChecker.C+`
 
 Output: `Fittercheck_ft3tracks.root`

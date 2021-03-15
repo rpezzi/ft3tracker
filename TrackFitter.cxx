@@ -236,8 +236,7 @@ bool TrackFitter::computeCluster(FT3Track &track, int cluster) {
   const auto &sigmaY2 = track.getSigmasY2()[cluster];
 
   if (track.getZ() == clz) {
-    LOG(INFO) << "AddCluster ERROR: The new cluster must be upstream! Bug on "
-                 "TrackFinder. "
+    LOG(INFO) << "AddCluster ERROR: The new cluster must be upstream!"
               << (track.isCA() ? " CATrack" : "LTFTrack");
     LOG(INFO) << "track.getZ() = " << track.getZ() << " ; newClusterZ = " << clz
               << " ==> Skipping point.";

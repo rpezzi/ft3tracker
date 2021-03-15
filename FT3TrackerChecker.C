@@ -39,7 +39,7 @@ using std::vector;
 
 bool DEBUG_VERBOSE = false;
 bool EXPORT_HISTOS_IMAGES = false;
-Int_t minHitsPerTrack = 8;
+Int_t minHitsPerTrack = 10;
 
 //_________________________________________________________________________________________________
 int FT3TrackerChecker(const Char_t *trkFile = "ft3tracks.root",
@@ -51,8 +51,8 @@ int FT3TrackerChecker(const Char_t *trkFile = "ft3tracks.root",
   Double_t pMax = 100.0;
   Double_t deltaetaMin = -.1;
   Double_t deltaetaMax = +.1;
-  Double_t etaMin = -3.4;
-  Double_t etaMax = -2.4;
+  Double_t etaMin = -5.0;
+  Double_t etaMax = +5.0;
   Double_t deltaphiMin = -.2;
   Double_t deltaphiMax = .2;
   Double_t deltatanlMin = -2.0;

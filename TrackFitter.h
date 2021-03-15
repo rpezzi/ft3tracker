@@ -57,12 +57,9 @@ private:
   static constexpr double SMaxChi2 =
       2.e10; ///< maximum chi2 above which the track can be considered as
              ///< abnormal
-  /// default layer thickness in X0 for reconstruction  //FIXME: set values for
-  /// the MFT
-  static constexpr double SLayerThicknessInX0[10] = {
-      0.065, 0.065, 0.075, 0.075, 0.035, 0.035, 0.035, 0.035, 0.035, 0.035};
 
   bool mFieldON = true;
+
 };
 
 // Functions to estimate momentum and charge from track curvature

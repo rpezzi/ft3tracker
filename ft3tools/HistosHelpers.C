@@ -1,6 +1,11 @@
 #if !defined(__CLING__) || defined(__ROOTCLING__)
 
 #include <TCanvas.h>
+#include "TLatex.h"
+#include "TROOT.h"
+#include <TStyle.h>
+#include "TSystem.h"
+
 
 #endif
 
@@ -236,8 +241,8 @@ summary_report_3x3(H1 &histo1, H2 &histo2, H3 &histo3, H4 &histo4, H5 &histo5,
   h1->SetMarkerSize(1);
   TLatex h1_entries = TLatex();
   h1_entries.SetNDC();
-  h1_entries.SetTextSize(0.035);
-  h1_entries.SetTextAlign(23);
+  h1_entries.SetTextSize(0.045);
+  h1_entries.SetTextAlign(11);
   h1_entries.DrawLatex(.08, .08, h1_foot.c_str());
   h1_entries.Draw();
 
@@ -255,8 +260,8 @@ summary_report_3x3(H1 &histo1, H2 &histo2, H3 &histo3, H4 &histo4, H5 &histo5,
   h2->SetMarkerSize(1);
   TLatex h2_entries = TLatex();
   h2_entries.SetNDC();
-  h2_entries.SetTextSize(0.035);
-  h2_entries.SetTextAlign(23);
+  h2_entries.SetTextSize(0.045);
+  h2_entries.SetTextAlign(11);
   h2_entries.DrawLatex(.08, .08, h2_foot.c_str());
   h2_entries.Draw();
 
@@ -273,8 +278,8 @@ summary_report_3x3(H1 &histo1, H2 &histo2, H3 &histo3, H4 &histo4, H5 &histo5,
   h3->SetMarkerSize(1);
   TLatex h3_entries = TLatex();
   h3_entries.SetNDC();
-  h3_entries.SetTextSize(0.035);
-  h3_entries.SetTextAlign(23);
+  h3_entries.SetTextSize(0.045);
+  h3_entries.SetTextAlign(11);
   h3_entries.DrawLatex(.08, .08, h3_foot.c_str());
   h3_entries.Draw();
 
@@ -291,8 +296,8 @@ summary_report_3x3(H1 &histo1, H2 &histo2, H3 &histo3, H4 &histo4, H5 &histo5,
   h4->SetMarkerSize(1);
   TLatex h4_entries = TLatex();
   h4_entries.SetNDC();
-  h4_entries.SetTextSize(0.035);
-  h4_entries.SetTextAlign(23);
+  h4_entries.SetTextSize(0.045);
+  h4_entries.SetTextAlign(11);
   h4_entries.DrawLatex(.08, .08, h4_foot.c_str());
   h4_entries.Draw();
 
@@ -308,8 +313,8 @@ summary_report_3x3(H1 &histo1, H2 &histo2, H3 &histo3, H4 &histo4, H5 &histo5,
   h5->SetMarkerSize(1);
   TLatex h5_entries = TLatex();
   h5_entries.SetNDC();
-  h5_entries.SetTextSize(0.035);
-  h5_entries.SetTextAlign(23);
+  h5_entries.SetTextSize(0.045);
+  h5_entries.SetTextAlign(11);
   h5_entries.DrawLatex(.08, .08, h5_foot.c_str());
   h5_entries.Draw();
 
@@ -327,8 +332,8 @@ summary_report_3x3(H1 &histo1, H2 &histo2, H3 &histo3, H4 &histo4, H5 &histo5,
   h6->SetMarkerSize(1);
   TLatex h6_entries = TLatex();
   h6_entries.SetNDC();
-  h6_entries.SetTextSize(0.035);
-  h6_entries.SetTextAlign(23);
+  h6_entries.SetTextSize(0.045);
+  h6_entries.SetTextAlign(11);
   h6_entries.DrawLatex(.08, .08, h6_foot.c_str());
   h6_entries.Draw();
 
@@ -348,8 +353,8 @@ summary_report_3x3(H1 &histo1, H2 &histo2, H3 &histo3, H4 &histo4, H5 &histo5,
   h7->SetMarkerSize(1);
   TLatex h7_entries = TLatex();
   h7_entries.SetNDC();
-  h7_entries.SetTextSize(0.035);
-  h7_entries.SetTextAlign(23);
+  h7_entries.SetTextSize(0.045);
+  h7_entries.SetTextAlign(11);
   h7_entries.DrawLatex(.08, .08, h7_foot.c_str());
   h7_entries.Draw();
 
@@ -369,8 +374,8 @@ summary_report_3x3(H1 &histo1, H2 &histo2, H3 &histo3, H4 &histo4, H5 &histo5,
   h8->SetMarkerSize(1);
   TLatex h8_entries = TLatex();
   h8_entries.SetNDC();
-  h8_entries.SetTextSize(0.035);
-  h8_entries.SetTextAlign(23);
+  h8_entries.SetTextSize(0.045);
+  h8_entries.SetTextAlign(11);
   h8_entries.DrawLatex(.08, .08, h8_foot.c_str());
   h8_entries.Draw();
 
@@ -390,8 +395,8 @@ summary_report_3x3(H1 &histo1, H2 &histo2, H3 &histo3, H4 &histo4, H5 &histo5,
   h9->SetMarkerSize(1);
   TLatex h9_entries = TLatex();
   h9_entries.SetNDC();
-  h9_entries.SetTextSize(0.035);
-  h9_entries.SetTextAlign(23);
+  h9_entries.SetTextSize(0.045);
+  h9_entries.SetTextAlign(11);
   h9_entries.DrawLatex(.08, .08, h9_foot.c_str());
   h9_entries.Draw();
 

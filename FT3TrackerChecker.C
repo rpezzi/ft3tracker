@@ -41,6 +41,24 @@ bool DEBUG_VERBOSE = false;
 bool EXPORT_HISTOS_IMAGES = false;
 Int_t minHitsPerTrack = 10;
 
+bool InnerBorder(float_t tanl) { // -3.6
+  auto abstanl = std::abs(tanl);
+  return (abstanl > 18.1 && abstanl < 18.2855);
+}
+
+bool OuterBorder(float_t tanl) { // -2.8
+  auto abstanl = std::abs(tanl);
+  return (abstanl > 8.1919179  && abstanl < 8.2748525 );
+}
+
+bool pt_1(float_t pt) {
+  return ((pt > 0.9) && (pt < 1.1));
+}
+
+bool pt_4(float_t pt) {
+  return ((pt > 3.9) && (pt < 4.1));
+}
+
 //_________________________________________________________________________________________________
 int FT3TrackerChecker(const Char_t *trkFile = "ft3tracks.root",
                       const Char_t *o2sim_KineFile = "o2sim_Kine.root",
@@ -189,6 +207,26 @@ int FT3TrackerChecker(const Char_t *trkFile = "ft3tracks.root",
     kFT3TrackQ0_1,
     kFT3TrackQ1_4,
     kFT3TrackQ4plus,
+    kFT3TrackXPull1_innerBorder,
+    kFT3TrackXPull1_OuterBorder,
+    kFT3TrackXPull4_innerBorder,
+    kFT3TrackXPull4_OuterBorder,
+    kFT3TrackYPull1_innerBorder,
+    kFT3TrackYPull1_OuterBorder,
+    kFT3TrackYPull4_innerBorder,
+    kFT3TrackYPull4_OuterBorder,
+    kFT3TrackPhiPull1_innerBorder,
+    kFT3TrackPhiPull1_OuterBorder,
+    kFT3TrackPhiPull4_innerBorder,
+    kFT3TrackPhiPull4_OuterBorder,
+    kFT3TrackTanlPull1_innerBorder,
+    kFT3TrackTanlPull1_OuterBorder,
+    kFT3TrackTanlPull4_innerBorder,
+    kFT3TrackTanlPull4_OuterBorder,
+    kFT3TrackInvQPtPull1_innerBorder,
+    kFT3TrackInvQPtPull1_OuterBorder,
+    kFT3TrackInvQPtPull4_innerBorder,
+    kFT3TrackInvQPtPull4_OuterBorder,
     kFT3TrackChi2,
     kMCTrackspT,
     kMCTracksp,
@@ -231,6 +269,26 @@ int FT3TrackerChecker(const Char_t *trkFile = "ft3tracks.root",
       {kFT3TrackQ0_1, "Charge Match (pt < 1)"},
       {kFT3TrackQ1_4, "Charge Match (1 < pt < 4)"},
       {kFT3TrackQ4plus, "Charge Match (pt > 4)"},
+      {kFT3TrackXPull1_innerBorder, "TrackXPull1_innerBorder"},
+      {kFT3TrackXPull1_OuterBorder, "TrackXPull1_OuterBorder"},
+      {kFT3TrackXPull4_innerBorder, "TrackXPull4_innerBorder"},
+      {kFT3TrackXPull4_OuterBorder, "TrackXPull4_OuterBorder"},
+      {kFT3TrackYPull1_innerBorder, "TrackYPull1_innerBorder"},
+      {kFT3TrackYPull1_OuterBorder, "TrackYPull1_OuterBorder"},
+      {kFT3TrackYPull4_innerBorder, "TrackYPull4_innerBorder"},
+      {kFT3TrackYPull4_OuterBorder, "TrackYPull4_OuterBorder"},
+      {kFT3TrackPhiPull1_innerBorder, "TrackPhiPull1_innerBorder"},
+      {kFT3TrackPhiPull1_OuterBorder, "TrackPhiPull1_OuterBorder"},
+      {kFT3TrackPhiPull4_innerBorder, "TrackPhiPull4_innerBorder"},
+      {kFT3TrackPhiPull4_OuterBorder, "TrackPhiPull4_OuterBorder"},
+      {kFT3TrackTanlPull1_innerBorder, "TrackTanlPull1_innerBorder"},
+      {kFT3TrackTanlPull1_OuterBorder, "TrackTanlPull1_OuterBorder"},
+      {kFT3TrackTanlPull4_innerBorder, "TrackTanlPull4_innerBorder"},
+      {kFT3TrackTanlPull4_OuterBorder, "TrackTanlPull4_OuterBorder"},
+      {kFT3TrackInvQPtPull1_innerBorder, "TrackInvQPtPull1_innerBorder"},
+      {kFT3TrackInvQPtPull1_OuterBorder, "TrackInvQPtPull1_OuterBorder"},
+      {kFT3TrackInvQPtPull4_innerBorder, "TrackInvQPtPull4_innerBorder"},
+      {kFT3TrackInvQPtPull4_OuterBorder, "TrackInvQPtPull4_OuterBorder"},
       {kFT3TrackChi2, "Tracks Chi2"},
       {kMCTrackspT, "MC Tracks p_T"},
       {kMCTracksp, "MC Tracks p"},
@@ -268,25 +326,45 @@ int FT3TrackerChecker(const Char_t *trkFile = "ft3tracks.root",
       {kFT3TrackQ1_4, "FT3 Tracks Charge Match (1 < pt < 4)"},
       {kFT3TrackQ4plus, "FT3 Tracks Charge Match (pt > 4)"},
       {kFT3TrackChi2, "FT3 Tracks ~ \\chi^2"},
+      {kFT3TrackXPull1_innerBorder, "TrackXPull1GeV | \\eta = -3.6"},
+      {kFT3TrackXPull1_OuterBorder, "TrackXPull1GeV | \\eta = -2.8"},
+      {kFT3TrackXPull4_innerBorder, "TrackXPull4GeV | \\eta = -3.6"},
+      {kFT3TrackXPull4_OuterBorder, "TrackXPull4GeV | \\eta = -2.8"},
+      {kFT3TrackYPull1_innerBorder, "TrackYPull1GeV | \\eta = -3.6"},
+      {kFT3TrackYPull1_OuterBorder, "TrackYPull1GeV | \\eta = -2.8"},
+      {kFT3TrackYPull4_innerBorder, "TrackYPull4GeV | \\eta = -3.6"},
+      {kFT3TrackYPull4_OuterBorder, "TrackYPull4GeV | \\eta = -2.8"},
+      {kFT3TrackPhiPull1_innerBorder, "TrackPhiPull1GeV | \\eta = -3.6"},
+      {kFT3TrackPhiPull1_OuterBorder, "TrackPhiPull1GeV | \\eta = -2.8"},
+      {kFT3TrackPhiPull4_innerBorder, "TrackPhiPull4GeV | \\eta = -3.6"},
+      {kFT3TrackPhiPull4_OuterBorder, "TrackPhiPull4GeV | \\eta = -2.8"},
+      {kFT3TrackTanlPull1_innerBorder, "TrackTanlPull1GeV | \\eta = -3.6"},
+      {kFT3TrackTanlPull1_OuterBorder, "TrackTanlPull1GeV | \\eta = -2.8"},
+      {kFT3TrackTanlPull4_innerBorder, "TrackTanlPull4GeV | \\eta = -3.6"},
+      {kFT3TrackTanlPull4_OuterBorder, "TrackTanlPull4GeV | \\eta = -2.8"},
+      {kFT3TrackInvQPtPull1_innerBorder, "TrackInvQPtPull1GeV | \\eta = -3.6"},
+      {kFT3TrackInvQPtPull1_OuterBorder, "TrackInvQPtPull1GeV | \\eta = -2.8"},
+      {kFT3TrackInvQPtPull4_innerBorder, "TrackInvQPtPull4GeV | \\eta = -3.6"},
+      {kFT3TrackInvQPtPull4_OuterBorder, "TrackInvQPtPull4GeV | \\eta = -2.8"},
       {kMCTrackspT, "MC Tracks p_T"},
       {kMCTracksp, "MC Tracks p"},
       {kMCTrackEta, "MC Tracks Pseudorapidity"}};
 
   std::map<int, std::array<double, 3>> TH1Binning{
       {kFT3TracksP, {500, pMin, pMax}},
-      {kFT3TrackDeltaXErr, {500, -10, 10}},
-      {kFT3TrackDeltaYErr, {500, -10, 10}},
-      {kFT3TrackDeltaPhiErr, {500, -10, +10}},
-      {kFT3TrackDeltaTanLErr, {500, -10, +10}},
-      {kFT3TrackDeltainvQPtErr, {500, -50, +50}},
-      {kFT3TrackDeltaTanl, {1000, deltatanlMin, deltatanlMax}},
-      {kFT3TrackDeltaTanl0_1, {1000, deltatanlMin, deltatanlMax}},
-      {kFT3TrackDeltaTanl1_4, {1000, deltatanlMin, deltatanlMax}},
-      {kFT3TrackDeltaTanl4plus, {1000, deltatanlMin, deltatanlMax}},
-      {kFT3TrackDeltaPhi, {1000, deltaphiMin, deltaphiMax}},
-      {kFT3TrackDeltaPhi0_1, {1000, deltaphiMin, deltaphiMax}},
-      {kFT3TrackDeltaPhi1_4, {1000, deltaphiMin, deltaphiMax}},
-      {kFT3TrackDeltaPhi4plus, {1000, deltaphiMin, deltaphiMax}},
+      {kFT3TrackDeltaXErr, {500, -5, 5}},
+      {kFT3TrackDeltaYErr, {500, -5, 5}},
+      {kFT3TrackDeltaPhiErr, {200, -5, 5}},
+      {kFT3TrackDeltaTanLErr, {200, -5, 5}},
+      {kFT3TrackDeltainvQPtErr, {200, -5, 5}},
+      {kFT3TrackDeltaTanl, {200, deltatanlMin, deltatanlMax}},
+      {kFT3TrackDeltaTanl0_1, {200, deltatanlMin, deltatanlMax}},
+      {kFT3TrackDeltaTanl1_4, {200, deltatanlMin, deltatanlMax}},
+      {kFT3TrackDeltaTanl4plus, {200, deltatanlMin, deltatanlMax}},
+      {kFT3TrackDeltaPhi, {200, deltaphiMin, deltaphiMax}},
+      {kFT3TrackDeltaPhi0_1, {200, deltaphiMin, deltaphiMax}},
+      {kFT3TrackDeltaPhi1_4, {200, deltaphiMin, deltaphiMax}},
+      {kFT3TrackDeltaPhi4plus, {200, deltaphiMin, deltaphiMax}},
       {kFT3TrackDeltaPhiDeg,
        {1000, TMath::RadToDeg() * deltaphiMin,
         TMath::RadToDeg() * deltaphiMax}},
@@ -312,6 +390,26 @@ int FT3TrackerChecker(const Char_t *trkFile = "ft3tracks.root",
       {kFT3TrackQ1_4, {5, -2.1, 2.1}},
       {kFT3TrackQ4plus, {5, -2.1, 2.1}},
       {kFT3TrackChi2, {10000, 0, 1000}},
+      {kFT3TrackXPull1_innerBorder, {200, -5, 5}},
+      {kFT3TrackXPull1_OuterBorder, {200, -5, 5}},
+      {kFT3TrackXPull4_innerBorder, {200, -5, 5}},
+      {kFT3TrackXPull4_OuterBorder, {200, -5, 5}},
+      {kFT3TrackYPull1_innerBorder, {200, -5, 5}},
+      {kFT3TrackYPull1_OuterBorder, {200, -5, 5}},
+      {kFT3TrackYPull4_innerBorder, {200, -5, 5}},
+      {kFT3TrackYPull4_OuterBorder, {200, -5, 5}},
+      {kFT3TrackPhiPull1_innerBorder, {200, -5, 5}},
+      {kFT3TrackPhiPull1_OuterBorder, {200, -5, 5}},
+      {kFT3TrackPhiPull4_innerBorder, {200, -5, 5}},
+      {kFT3TrackPhiPull4_OuterBorder, {200, -5, 5}},
+      {kFT3TrackTanlPull1_innerBorder, {200, -5, 5}},
+      {kFT3TrackTanlPull1_OuterBorder, {200, -5, 5}},
+      {kFT3TrackTanlPull4_innerBorder, {200, -5, 5}},
+      {kFT3TrackTanlPull4_OuterBorder, {200, -5, 5}},
+      {kFT3TrackInvQPtPull1_innerBorder, {200, -5, 5}},
+      {kFT3TrackInvQPtPull1_OuterBorder, {200, -5, 5}},
+      {kFT3TrackInvQPtPull4_innerBorder, {200, -5, 5}},
+      {kFT3TrackInvQPtPull4_OuterBorder, {200, -5, 5}},
       {kMCTrackspT, {5000, 0, 50}},
       {kMCTracksp, {1000, pMin, pMax}},
       {kMCTrackEta, {1000, etaMin, etaMax}}};
@@ -348,6 +446,26 @@ int FT3TrackerChecker(const Char_t *trkFile = "ft3tracks.root",
       {kFT3TrackQ1_4, "q_{fit}-q_{MC}"},
       {kFT3TrackQ4plus, "q_{fit}-q_{MC}"},
       {kFT3TrackChi2, "\\chi^2"},
+      {kFT3TrackXPull1_innerBorder, "x_pull"},
+      {kFT3TrackXPull1_OuterBorder, "x_pull"},
+      {kFT3TrackXPull4_innerBorder, "x_pull"},
+      {kFT3TrackXPull4_OuterBorder, "x_pull"},
+      {kFT3TrackYPull1_innerBorder, "y_pull"},
+      {kFT3TrackYPull1_OuterBorder, "y_pull"},
+      {kFT3TrackYPull4_innerBorder, "y_pull"},
+      {kFT3TrackYPull4_OuterBorder, "y_pull"},
+      {kFT3TrackPhiPull1_innerBorder, "phi_pull"},
+      {kFT3TrackPhiPull1_OuterBorder, "phi_pull"},
+      {kFT3TrackPhiPull4_innerBorder, "phi_pull"},
+      {kFT3TrackPhiPull4_OuterBorder, "phi_pull"},
+      {kFT3TrackTanlPull1_innerBorder, "tanl_pull"},
+      {kFT3TrackTanlPull1_OuterBorder, "tanl_pull"},
+      {kFT3TrackTanlPull4_innerBorder, "tanl_pull"},
+      {kFT3TrackTanlPull4_OuterBorder, "tanl_pull"},
+      {kFT3TrackInvQPtPull1_innerBorder, "q/pt_pull"},
+      {kFT3TrackInvQPtPull1_OuterBorder, "q/pt_pull"},
+      {kFT3TrackInvQPtPull4_innerBorder, "q/pt_pull"},
+      {kFT3TrackInvQPtPull4_OuterBorder, "q/pt_pull"},
       {kMCTrackspT, "p_t [GeV]"},
       {kMCTracksp, "p [GeV]"},
       {kMCTrackEta, " \\eta"}};
@@ -382,7 +500,7 @@ int FT3TrackerChecker(const Char_t *trkFile = "ft3tracks.root",
 
   // Profiles histograms
   auto PtRes_Profile = new TProfile("Pt_res_prof", "Profile of pt{fit}/pt{MC}",
-                                    14, 0, 7, 0, 20, "s");
+                                    28, 0, 7, 0, 20, "s");
   PtRes_Profile->GetXaxis()->SetTitle("pt_{MC}");
   PtRes_Profile->GetYaxis()->SetTitle("mean(Pt_{Fit}/Pt_{MC})");
 
@@ -561,6 +679,40 @@ int FT3TrackerChecker(const Char_t *trkFile = "ft3tracks.root",
           TH1Histos[kFT3TrackQ0_1]->Fill(d_Charge);
           d_Charge ? nChargeMiss0_1++ : nChargeMatch0_1++;
         }
+
+
+        if ( InnerBorder(tanl_MC) and  pt_1(Pt_MC) ) {
+          TH1Histos[kFT3TrackXPull1_innerBorder]->Fill(dx / sqrt(trackFT3.getCovariances()(0, 0)));
+          TH1Histos[kFT3TrackYPull1_innerBorder]->Fill(dy / sqrt(trackFT3.getCovariances()(1, 1)));
+          TH1Histos[kFT3TrackPhiPull1_innerBorder]->Fill(d_Phi / sqrt(trackFT3.getCovariances()(2, 2)));
+          TH1Histos[kFT3TrackTanlPull1_innerBorder]->Fill(d_tanl / sqrt(trackFT3.getCovariances()(3, 3)));
+          TH1Histos[kFT3TrackInvQPtPull1_innerBorder]->Fill(d_invQPt / sqrt(trackFT3.getCovariances()(4, 4)));
+        }
+
+        if ( InnerBorder(tanl_MC) and  pt_4(Pt_MC) ) {
+          TH1Histos[kFT3TrackXPull4_innerBorder]->Fill(dx / sqrt(trackFT3.getCovariances()(0, 0)));
+          TH1Histos[kFT3TrackYPull4_innerBorder]->Fill(dy / sqrt(trackFT3.getCovariances()(1, 1)));
+          TH1Histos[kFT3TrackPhiPull4_innerBorder]->Fill(d_Phi / sqrt(trackFT3.getCovariances()(2, 2)));
+          TH1Histos[kFT3TrackTanlPull4_innerBorder]->Fill(d_tanl / sqrt(trackFT3.getCovariances()(3, 3)));
+          TH1Histos[kFT3TrackInvQPtPull4_innerBorder]->Fill(d_invQPt / sqrt(trackFT3.getCovariances()(4, 4)));
+        }
+
+        if ( OuterBorder(tanl_MC) and  pt_1(Pt_MC) ) {
+          TH1Histos[kFT3TrackXPull1_OuterBorder]->Fill(dx / sqrt(trackFT3.getCovariances()(0, 0)));
+          TH1Histos[kFT3TrackYPull1_OuterBorder]->Fill(dy / sqrt(trackFT3.getCovariances()(1, 1)));
+          TH1Histos[kFT3TrackPhiPull1_OuterBorder]->Fill(d_Phi / sqrt(trackFT3.getCovariances()(2, 2)));
+          TH1Histos[kFT3TrackTanlPull1_OuterBorder]->Fill(d_tanl / sqrt(trackFT3.getCovariances()(3, 3)));
+          TH1Histos[kFT3TrackInvQPtPull1_OuterBorder]->Fill(d_invQPt / sqrt(trackFT3.getCovariances()(4, 4)));
+        }
+
+        if ( OuterBorder(tanl_MC) and  pt_4(Pt_MC) ) {
+          TH1Histos[kFT3TrackXPull4_OuterBorder]->Fill(dx / sqrt(trackFT3.getCovariances()(0, 0)));
+          TH1Histos[kFT3TrackYPull4_OuterBorder]->Fill(dy / sqrt(trackFT3.getCovariances()(1, 1)));
+          TH1Histos[kFT3TrackPhiPull4_OuterBorder]->Fill(d_Phi / sqrt(trackFT3.getCovariances()(2, 2)));
+          TH1Histos[kFT3TrackTanlPull4_OuterBorder]->Fill(d_tanl / sqrt(trackFT3.getCovariances()(3, 3)));
+          TH1Histos[kFT3TrackInvQPtPull4_OuterBorder]->Fill(d_invQPt / sqrt(trackFT3.getCovariances()(4, 4)));
+        }
+
         if (Pt_MC > 1.0 and Pt_MC <= 4) {
           TH2Histos[kFT3TrackDeltaXYVertex1_4]->Fill(10.0 * dx, 10.0 * dy);
           TH1Histos[kFT3TrackDeltaTanl1_4]->Fill(d_tanl);
@@ -781,6 +933,72 @@ int FT3TrackerChecker(const Char_t *trkFile = "ft3tracks.root",
                          TH1Histos[kFT3TrackDeltaTanl4plus]->GetEntries()),
       Form("%.2f%%", 100.0 * TH1Histos[kFT3TrackDeltaPhiDeg4plus]->Integral() /
                          TH1Histos[kFT3TrackDeltaPhiDeg4plus]->GetEntries()));
+  // Pulls summaries
+
+  auto XpullSummary = summary_report(
+      *TH1Histos[kFT3TrackXPull1_innerBorder], *TH1Histos[kFT3TrackXPull4_innerBorder],
+      *TH1Histos[kFT3TrackXPull1_OuterBorder], *TH1Histos[kFT3TrackXPull4_OuterBorder],
+      "XpullSummary", seed_cfg, 1, 1, 1, 1,
+      Form("%.2f%%", 100.0 * TH1Histos[kFT3TrackXPull1_innerBorder]->Integral() /
+                         TH1Histos[kFT3TrackXPull1_innerBorder]->GetEntries()),
+      Form("%.2f%%", 100.0 * TH1Histos[kFT3TrackXPull4_innerBorder]->Integral() /
+                         TH1Histos[kFT3TrackXPull4_innerBorder]->GetEntries()),
+      Form("%.2f%%", 100.0 * TH1Histos[kFT3TrackXPull1_OuterBorder]->Integral() /
+                         TH1Histos[kFT3TrackXPull1_OuterBorder]->GetEntries()),
+      Form("%.2f%%", 100.0 * TH1Histos[kFT3TrackXPull4_OuterBorder]->Integral() /
+                         TH1Histos[kFT3TrackXPull4_OuterBorder]->GetEntries()));
+  //
+  auto YpullSummary = summary_report(
+      *TH1Histos[kFT3TrackYPull1_innerBorder], *TH1Histos[kFT3TrackYPull4_innerBorder],
+      *TH1Histos[kFT3TrackYPull1_OuterBorder], *TH1Histos[kFT3TrackYPull4_OuterBorder],
+      "YpullSummary", seed_cfg, 1, 1, 1, 1,
+      Form("%.2f%%", 100.0 * TH1Histos[kFT3TrackYPull1_innerBorder]->Integral() /
+                         TH1Histos[kFT3TrackYPull1_innerBorder]->GetEntries()),
+      Form("%.2f%%", 100.0 * TH1Histos[kFT3TrackYPull4_innerBorder]->Integral() /
+                         TH1Histos[kFT3TrackYPull4_innerBorder]->GetEntries()),
+      Form("%.2f%%", 100.0 * TH1Histos[kFT3TrackYPull1_OuterBorder]->Integral() /
+                         TH1Histos[kFT3TrackYPull1_OuterBorder]->GetEntries()),
+      Form("%.2f%%", 100.0 * TH1Histos[kFT3TrackYPull4_OuterBorder]->Integral() /
+                         TH1Histos[kFT3TrackYPull4_OuterBorder]->GetEntries()));
+  //
+  auto PhipullSummary = summary_report(
+      *TH1Histos[kFT3TrackPhiPull1_innerBorder], *TH1Histos[kFT3TrackPhiPull4_innerBorder],
+      *TH1Histos[kFT3TrackPhiPull1_OuterBorder], *TH1Histos[kFT3TrackPhiPull4_OuterBorder],
+      "PhipullSummary", seed_cfg, 1, 1, 1, 1,
+      Form("%.2f%%", 100.0 * TH1Histos[kFT3TrackPhiPull1_innerBorder]->Integral() /
+                         TH1Histos[kFT3TrackPhiPull1_innerBorder]->GetEntries()),
+      Form("%.2f%%", 100.0 * TH1Histos[kFT3TrackPhiPull4_innerBorder]->Integral() /
+                         TH1Histos[kFT3TrackPhiPull4_innerBorder]->GetEntries()),
+      Form("%.2f%%", 100.0 * TH1Histos[kFT3TrackPhiPull1_OuterBorder]->Integral() /
+                         TH1Histos[kFT3TrackPhiPull1_OuterBorder]->GetEntries()),
+      Form("%.2f%%", 100.0 * TH1Histos[kFT3TrackPhiPull4_OuterBorder]->Integral() /
+                         TH1Histos[kFT3TrackPhiPull4_OuterBorder]->GetEntries()));
+  //
+  auto TanlpullSummary = summary_report(
+      *TH1Histos[kFT3TrackTanlPull1_innerBorder], *TH1Histos[kFT3TrackTanlPull4_innerBorder],
+      *TH1Histos[kFT3TrackTanlPull1_OuterBorder], *TH1Histos[kFT3TrackTanlPull4_OuterBorder],
+      "TanlpullSummary", seed_cfg, 1, 1, 1, 1,
+      Form("%.2f%%", 100.0 * TH1Histos[kFT3TrackTanlPull1_innerBorder]->Integral() /
+                         TH1Histos[kFT3TrackTanlPull1_innerBorder]->GetEntries()),
+      Form("%.2f%%", 100.0 * TH1Histos[kFT3TrackTanlPull4_innerBorder]->Integral() /
+                         TH1Histos[kFT3TrackTanlPull4_innerBorder]->GetEntries()),
+      Form("%.2f%%", 100.0 * TH1Histos[kFT3TrackTanlPull1_OuterBorder]->Integral() /
+                         TH1Histos[kFT3TrackTanlPull1_OuterBorder]->GetEntries()),
+      Form("%.2f%%", 100.0 * TH1Histos[kFT3TrackTanlPull4_OuterBorder]->Integral() /
+                         TH1Histos[kFT3TrackTanlPull4_OuterBorder]->GetEntries()));
+  //
+  auto InvQPtpullSummary = summary_report(
+      *TH1Histos[kFT3TrackInvQPtPull1_innerBorder], *TH1Histos[kFT3TrackInvQPtPull4_innerBorder],
+      *TH1Histos[kFT3TrackInvQPtPull1_OuterBorder], *TH1Histos[kFT3TrackInvQPtPull4_OuterBorder],
+      "InvQPtpullSummary", seed_cfg, 1, 1, 1, 1,
+      Form("%.2f%%", 100.0 * TH1Histos[kFT3TrackInvQPtPull1_innerBorder]->Integral() /
+                         TH1Histos[kFT3TrackInvQPtPull1_innerBorder]->GetEntries()),
+      Form("%.2f%%", 100.0 * TH1Histos[kFT3TrackInvQPtPull4_innerBorder]->Integral() /
+                         TH1Histos[kFT3TrackInvQPtPull4_innerBorder]->GetEntries()),
+      Form("%.2f%%", 100.0 * TH1Histos[kFT3TrackInvQPtPull1_OuterBorder]->Integral() /
+                         TH1Histos[kFT3TrackInvQPtPull1_OuterBorder]->GetEntries()),
+      Form("%.2f%%", 100.0 * TH1Histos[kFT3TrackInvQPtPull4_OuterBorder]->Integral() /
+                         TH1Histos[kFT3TrackInvQPtPull4_OuterBorder]->GetEntries()));
 
   // Write histograms to file and export images
 

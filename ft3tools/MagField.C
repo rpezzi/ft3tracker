@@ -10,11 +10,12 @@
 
 double getZField(double x, double y, double z) {
   const auto grp = o2::parameters::GRPObject::loadFrom("o2sim_grp.root");
-  std::unique_ptr<o2::parameters::GRPObject> mGRP = nullptr;
-  mGRP.reset(grp);
   o2::base::Propagator::initFieldFromGRP(grp);
   auto field = static_cast<o2::field::MagneticField *>(
       TGeoGlobalMagField::Instance()->GetField());
+  std::cout << " grp->getL3Current() = " <<  grp->getL3Current() <<
+               " ; grp->getDipoleCurrent() = " << grp->getDipoleCurrent() <<
+               " ; grp->getFieldUniformity() = " << grp->getFieldUniformity() << std::endl;
 
   double position[3] = {x, y, z};
   auto Bz = field->getBz(position);

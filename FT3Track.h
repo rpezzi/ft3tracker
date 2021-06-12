@@ -12,6 +12,7 @@
 #ifndef O2_FT3_TRACK_H_
 #define O2_FT3_TRACK_H_
 
+#include "TRandom3.h"
 #include "DataFormatsMFT/TrackMFT.h"
 #include "ITSMFTSimulation/Hit.h"
 #include "SimulationDataFormat/MCCompLabel.h"
@@ -34,7 +35,7 @@ public:
   const std::vector<Float_t> &getSigmasY2() const { return mSigmaY2; }
   const std::vector<Int_t> &getLayers() const { return mLayer; }
   const std::vector<Int_t> &getHitsId() const { return mHitId; }
-  void addHit(const Hit &ht, const Int_t hitId);
+  void addHit(const Hit &ht, const Int_t hitId, const Float_t sigma, Bool_t smear);
   void sort();
 
 private:
@@ -50,15 +51,20 @@ private:
 };
 
 //_________________________________________________________________________________________________
-inline void FT3Track::addHit(const Hit &ht, const Int_t hitId) {
-  mX.emplace_back(ht.GetStartX());
-  mY.emplace_back(ht.GetStartY());
+inline void FT3Track::addHit(const Hit &ht, const Int_t hitId, const Float_t sigma = 8.44e-4, Bool_t smear =  true) {
+  TRandom rnd(0);
+  auto x = ht.GetStartX() + (smear ? rnd.Gaus(0,sigma) : 0 );
+  auto y = ht.GetStartY() + (smear ? rnd.Gaus(0,sigma) : 0 );
+  auto sigma2 = sigma * sigma;
+  mX.emplace_back(x);
+  mY.emplace_back(y);
   mZ.emplace_back(ht.GetStartZ());
-  mSigmaX2.emplace_back(3e-3);
-  mSigmaY2.emplace_back(3e-3);
+  mSigmaX2.emplace_back(sigma2);
+  mSigmaY2.emplace_back(sigma2);
   mLayer.emplace_back(ht.GetDetectorID());
   mHitId.emplace_back(hitId);
   setNumberOfPoints(mX.size());
+
 }
 
 //_________________________________________________________________________________________________

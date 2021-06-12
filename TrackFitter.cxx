@@ -45,20 +45,22 @@ bool TrackFitter::fit(FT3Track &track, bool outward) {
 
   if (mVerbose) {
     std::cout << "Seed covariances: \n"
-              << track.getCovariances() << std::endl
-              << std::endl;
+              << "MA: " << track.getCovariances() << std::endl
+              << std::endl
+              << "MB: " << track.getCovariancesB() << std::endl  << std::endl;
+
   }
 
   // recursively compute clusters, updating the track parameters
   if (!outward) { // Inward for vertexing
-    nClusters--;
+    //nClusters--;
     while (nClusters-- > 0) {
       if (!computeCluster(track, nClusters)) {
         return false;
       }
     }
   } else { // Outward for MCH matching
-    int ncl = 1;
+    int ncl = 0;//1;
     while (ncl < nClusters) {
       if (!computeCluster(track, ncl)) {
         return false;
@@ -84,6 +86,7 @@ bool TrackFitter::initTrack(FT3Track &track, bool outward) {
   double sigmainvQPtsq;
   double chi2invqptquad = 0;
   auto invQPt0 = invQPtFromFCF(track, mBZField, sigmainvQPtsq);
+
   auto nPoints = track.getNumberOfPoints();
   auto k = TMath::Abs(o2::constants::math::B2C * mBZField);
   auto Hz = std::copysign(1, mBZField);
@@ -100,26 +103,27 @@ bool TrackFitter::initTrack(FT3Track &track, bool outward) {
     last_cls = nPoints - 1;
   } else { // Vertexing
     first_cls = nPoints - 1;
-    last_cls = 0;
+    last_cls = nPoints - 2;
   }
 
   auto x0 = track.getXCoordinates()[first_cls];
   auto y0 = track.getYCoordinates()[first_cls];
   auto z0 = track.getZCoordinates()[first_cls];
 
-  auto deltaX =
-      track.getXCoordinates()[nPoints - 1] - track.getXCoordinates()[0];
-  auto deltaY =
-      track.getYCoordinates()[nPoints - 1] - track.getYCoordinates()[0];
-  auto deltaZ =
-      track.getZCoordinates()[nPoints - 1] - track.getZCoordinates()[0];
+  //Compute tanl using first two clusters
+  auto deltaX = track.getXCoordinates()[1] - track.getXCoordinates()[0];
+  auto deltaY = track.getYCoordinates()[1] - track.getYCoordinates()[0];
+  auto deltaZ = track.getZCoordinates()[1] - track.getZCoordinates()[0];
   auto deltaR = TMath::Sqrt(deltaX * deltaX + deltaY * deltaY);
-  auto tanl0 =
-      0.5 * TMath::Sqrt2() * (deltaZ / deltaR) *
-      TMath::Sqrt(
-          TMath::Sqrt((invQPt0 * deltaR * k) * (invQPt0 * deltaR * k) + 1) + 1);
-  auto phi0 =
-      TMath::ATan2(deltaY, deltaX) - 0.5 * Hz * invQPt0 * deltaZ * k / tanl0;
+  auto tanl0 = 0.5 * TMath::Sqrt2() * (deltaZ / deltaR) *
+               TMath::Sqrt(TMath::Sqrt((invQPt0 * deltaR * k) * (invQPt0 * deltaR * k) + 1) + 1);
+
+  // Compute phi at the last cluster using two last clusters
+  deltaX = track.getXCoordinates()[first_cls] - track.getXCoordinates()[last_cls];
+  deltaY = track.getYCoordinates()[first_cls] - track.getYCoordinates()[last_cls];
+  deltaZ = track.getZCoordinates()[first_cls] - track.getZCoordinates()[last_cls];
+  deltaR = TMath::Sqrt(deltaX * deltaX + deltaY * deltaY);
+  auto phi0 = TMath::ATan2(deltaY, deltaX) - 0.5 * Hz * invQPt0 * deltaZ * k / tanl0;
   auto sigmax0sq = track.getSigmasX2()[first_cls];
   auto sigmay0sq = track.getSigmasY2()[first_cls];
   auto sigmax1sq = track.getSigmasX2()[last_cls];
@@ -133,91 +137,43 @@ bool TrackFitter::initTrack(FT3Track &track, bool outward) {
   track.setPhi(phi0);
   track.setTanl(tanl0);
 
-  if (mVerbose) {
-    std::cout << "\n ***************************** Start Fitting new track "
-                 "***************************** \n";
-    std::cout << " Init FT3 Track => N Hits = " << nPoints << std::endl;
-    std::cout << "  initTrack: X = " << x0 << " Y = " << y0 << " Z = " << z0
-              << " Tgl = " << tanl0 << "  Phi = " << phi0
-              << " pz = " << track.getPz()
-              << " qpt = " << 1.0 / track.getInvQPt() << std::endl;
-    std::cout << " Variances: sigma2_x0 = " << TMath::Sqrt(sigmax0sq)
-              << " sigma2_y0 = " << TMath::Sqrt(sigmay0sq)
-              << " sigma2_q/pt = " << TMath::Sqrt(sigmainvQPtsq) << std::endl;
-  }
+  //Track model B
+  track.setXB(x0);
+  track.setYB(y0);
+  track.setZB(z0);
+  track.setPhiB(phi0);
+  track.setTant(1.0/tanl0);
+  track.setInvQPtB(invQPt0);
 
-  auto deltaR2 = deltaR * deltaR;
-  auto deltaR3 = deltaR2 * deltaR;
-  auto deltaR4 = deltaR2 * deltaR2;
-  auto k2 = k * k;
-  auto A =
-      TMath::Sqrt(track.getInvQPt() * track.getInvQPt() * deltaR2 * k2 + 1);
-  auto A2 = A * A;
-  auto B = A + 1.0;
-  auto B2 = B * B;
-  auto B3 = B * B * B;
-  auto B12 = TMath::Sqrt(B);
-  auto B32 = B * B12;
-  auto B52 = B * B32;
-  auto C = invQPt0 * k;
-  auto C2 = C * C;
-  auto C3 = C * C2;
-  auto D = 1.0 / (A2 * B2 * B2 * deltaR4);
-  auto E = D * deltaZ / (B * deltaR);
-  auto F = deltaR * deltaX * C3 * Hz / (A * B32);
-  auto G = 0.5 * TMath::Sqrt2() * A * B32 * C * Hz * deltaR;
-  auto Gx = G * deltaX;
-  auto Gy = G * deltaY;
-  auto H = -0.25 * TMath::Sqrt2() * B12 * C3 * Hz * deltaR3;
-  auto Hx = H * deltaX;
-  auto Hy = H * deltaY;
-  auto I = A * B2;
-  auto Ix = I * deltaX;
-  auto Iy = I * deltaY;
-  auto J = 2 * B * deltaR3 * deltaR3 * k2;
-  auto K = 0.5 * A * B - 0.25 * C2 * deltaR2;
-  auto L0 = Gx + Hx + Iy;
-  auto M0 = -Gy - Hy + Ix;
-  auto N = -0.5 * B3 * C * Hz * deltaR3 * deltaR4 * k2;
-  auto O = 0.125 * C2 * deltaR4 * deltaR4 * k2;
-  auto P = -K * k * Hz * deltaR / A;
-  auto Q = deltaZ * deltaZ / (A2 * B * deltaR3 * deltaR3);
-  auto R = 0.25 * C * deltaZ * TMath::Sqrt2() * deltaR * k / (A * B12);
 
-  SMatrix55 lastParamCov;
-  lastParamCov(0, 0) = sigmax0sq; // <X,X>
-  lastParamCov(0, 1) = 0;         // <Y,X>
-  lastParamCov(0, 2) = 0;         // <PHI,X>
-  lastParamCov(0, 3) = 0;         // <TANL,X>
-  lastParamCov(0, 4) = 0;         // <INVQPT,X>
+  SMatrix55Sym lastParamCov;
+  float qptsigma = TMath::Max(std::abs(track.getInvQPt()), .5);
+  float tanlsigma = TMath::Max(std::abs(track.getTanl()), .5);
 
-  lastParamCov(1, 1) = sigmay0sq; // <Y,Y>
-  lastParamCov(1, 2) = 0;         // <PHI,Y>
-  lastParamCov(1, 3) = 0;         // <TANL,Y>
-  lastParamCov(1, 4) = 0;         // <INVQPT,Y>
-
-  lastParamCov(2, 2) =
-      D * (J * K * K * sigmainvQPtsq + L0 * L0 * sigmaDeltaXsq +
-           M0 * M0 * sigmaDeltaYsq); // <PHI,PHI>
-  lastParamCov(2, 3) =
-      E * K *
-      (TMath::Sqrt2() * B52 *
-           (L0 * deltaX * sigmaDeltaXsq - deltaY * sigmaDeltaYsq * M0) +
-       N * sigmainvQPtsq); //  <TANL,PHI>
-  lastParamCov(2, 4) =
-      P * sigmainvQPtsq * TMath::Sqrt2() / B32; //  <INVQPT,PHI>
-
-  lastParamCov(3, 3) =
-      Q *
-      (2 * K * K *
-           (deltaX * deltaX * sigmaDeltaXsq + deltaY * deltaY * sigmaDeltaYsq) +
-       O * sigmainvQPtsq);                // <TANL,TANL>
-  lastParamCov(3, 4) = R * sigmainvQPtsq; // <INVQPT,TANL>
-
-  lastParamCov(4, 4) = sigmainvQPtsq; // <INVQPT,INVQPT>
+  lastParamCov(0, 0) = 1;                              // <X,X>
+  lastParamCov(1, 1) = 1;                              // <Y,X>
+  lastParamCov(2, 2) = TMath::Pi() * TMath::Pi() / 16; // <PHI,X>
+  lastParamCov(3, 3) = 10 * tanlsigma * tanlsigma;     // <TANL,X>
+  lastParamCov(4, 4) = 10 * qptsigma * qptsigma;       // <INVQPT,X>
 
   track.setCovariances(lastParamCov);
   track.setTrackChi2(0.);
+
+  // TrackModel B
+  SMatrix55Sym lastParamCovB;
+  float qptsigmab = TMath::Max(std::abs(track.getInvQPtB()), .5);
+  float tantsigma = TMath::Max(std::abs(track.getTant()), .5);
+
+  lastParamCovB(0, 0) = 1;                              // <X,X>
+  lastParamCovB(1, 1) = 1;                              // <Y,X>
+  lastParamCovB(2, 2) = TMath::Pi() * TMath::Pi() / 16; // <PHI,X>
+  lastParamCovB(3, 3) = 10 * tantsigma * tantsigma;     // <TANT,X>
+  lastParamCovB(4, 4) = 10 * qptsigmab * qptsigmab;       // <INVQPT,X>
+
+  track.setCovariancesB(lastParamCovB);
+  track.setTrackChi2B(0.);
+
+
 
   return true;
 }
@@ -235,40 +191,58 @@ bool TrackFitter::computeCluster(FT3Track &track, int cluster) {
   const auto &sigmaX2 = track.getSigmasX2()[cluster];
   const auto &sigmaY2 = track.getSigmasY2()[cluster];
 
-  if (track.getZ() == clz) {
+  /*if (track.getZ() == clz) {
     LOG(INFO) << "AddCluster ERROR: The new cluster must be upstream!"
               << (track.isCA() ? " CATrack" : "LTFTrack");
     LOG(INFO) << "track.getZ() = " << track.getZ() << " ; newClusterZ = " << clz
               << " ==> Skipping point.";
     return true;
-  }
+  }*/
   if (mVerbose) {
     std::cout << "computeCluster:     X = " << clx << " Y = " << cly
               << " Z = " << clz << " nCluster = " << cluster << std::endl;
   }
 
-  // add MCS effects for the new cluster
-  // TODO: Proper evaluation of MCS effects
-  auto MFTDiskThicknessInX0 = 1.0;
-  track.addMCSEffect(-1, 1 * MFTDiskThicknessInX0);
+
 
   if (mVerbose) {
-    std::cout << "  BeforeExtrap: X = " << track.getX()
-              << " Y = " << track.getY() << " Z = " << track.getZ()
-              << " Tgl = " << track.getTanl() << "  Phi = " << track.getPhi()
-              << " pz = " << track.getPz()
-              << " qpt = " << 1.0 / track.getInvQPt() << std::endl;
+    std::cout << "MA:  BeforeExtrap: X = " << track.getX() << " Y = " << track.getY() << " Z = " << track.getZ() << " Tgl = " << track.getTanl() << "  Phi = " << track.getPhi() << " q/pt = " << track.getInvQPt() << std::endl;
+    std::cout << "MB:  BeforeExtrap: X = " << track.getXB() << " Y = " << track.getYB() << " Z = " << track.getZB() << " Tgt = " << track.getTant() << "  Phi = " << track.getPhiB() << " q/pt = " << track.getInvQPtB() << std::endl;
   }
 
   // Propagate track to the z position of the new cluster
-  track.propagateToZhelix(clz, mBZField);
+  //track.propagateToZhelix(clz, mBZField);
+  track.propagateToZ(clz, mBZField);
+  track.propagateToZB(clz, mBZField);
+
+
+
+
 
   if (mVerbose) {
-    std::cout << "   AfterExtrap: X = " << track.getX()
-              << " Y = " << track.getY() << " Z = " << track.getZ()
-              << " Tgl = " << track.getTanl() << "  Phi = " << track.getPhi()
-              << " pz = " << track.getPz()
-              << " qpt = " << 1.0 / track.getInvQPt() << std::endl;
+    std::cout << "MA:   AfterExtrap: X = " << track.getX() << " Y = " << track.getY() << " Z = " << track.getZ() << " Tgl = " << track.getTanl() << "  Phi = " << track.getPhi() << " q/pt = " << track.getInvQPt() << std::endl;
+    std::cout << "MA: Track covariances after extrap: \n"
+              << track.getCovariances() << std::endl
+              << std::endl;
+    std::cout << "MB:   AfterExtrap: X = " << track.getXB() << " Y = " << track.getYB() << " Z = " << track.getZB() << " Tgt = " << track.getTant() << "  Phi = " << track.getPhiB() << " q/pt = " << track.getInvQPtB() << std::endl;
+    std::cout << "MB: Track covariances after extrap: \n"
+              << track.getCovariancesB() << std::endl
+              << std::endl;
+  }
+
+  // add MCS effects for the new cluster
+  auto Layerx2X0 = mLayersx2X0[cluster];
+  auto Si_X0 = 9.5;
+  auto chipThickness = Layerx2X0 * Si_X0;
+  track.addMCSEffect(-1, 0.5 * Layerx2X0);
+
+  if (mVerbose) {
+    std::cout << "MA:   After MCS Effects II:" << std::endl
+              << track.getCovariances() << std::endl
+              << std::endl;
+    std::cout << "MB:   After MCS Effects II:" << std::endl
+              << track.getCovariancesB() << std::endl
+              << std::endl;
   }
 
   // recompute parameters
@@ -277,16 +251,24 @@ bool TrackFitter::computeCluster(FT3Track &track, int cluster) {
 
   if (track.update(pos, cov)) {
     if (mVerbose) {
-      std::cout << "   New Cluster: X = " << clx << " Y = " << cly
-                << " Z = " << clz << std::endl;
-      std::cout << "   AfterKalman: X = " << track.getX()
-                << " Y = " << track.getY() << " Z = " << track.getZ()
-                << " Tgl = " << track.getTanl() << "  Phi = " << track.getPhi()
-                << " pz = " << track.getPz()
-                << " qpt = " << 1.0 / track.getInvQPt() << std::endl;
-      std::cout << std::endl;
-      // Outputs track covariance matrix:
-      // param.getCovariances().Print();
+      std::cout << "   New Cluster: X = " << clx << " Y = " << cly << " Z = " << clz << std::endl;
+      std::cout << "MA:   AfterKalman: X = " << track.getX() << " Y = " << track.getY() << " Z = " << track.getZ() << " Tgl = " << track.getTanl() << "  Phi = " << track.getPhi() << " q/pt = " << track.getInvQPt() << std::endl;
+      std::cout << "MA:   Track covariances after Kalman update: \n"
+                << track.getCovariances() << std::endl
+                << std::endl;
+
+      std::cout << "MB:   AfterKalman: X = " << track.getXB() << " Y = " << track.getYB() << " Z = " << track.getZB() << " Tgt = " << track.getTant() << "  Phi = " << track.getPhiB() << " q/pt = " << track.getInvQPtB() << std::endl;
+      std::cout << "MB: Track covariances after Kalman update: \n"
+                << track.getCovariancesB() << std::endl
+                << std::endl;
+    }
+    track.addMCSEffect(-1, 0.5 * Layerx2X0);
+
+    if (mVerbose) {
+      std::cout << "  After MCS Effects II:  mLayersx2X0[cluster] = " << Layerx2X0 << std::endl;
+      std::cout << "MA: " << track.getCovariances() << std::endl << std::endl;
+      std::cout << "MB: " << track.getCovariancesB() << std::endl << std::endl;
+
     }
     return true;
   }

@@ -27,7 +27,7 @@ namespace ft3 {
 
 class TrackFitter {
 
-  using SMatrix55 =
+  using SMatrix55Sym =
       ROOT::Math::SMatrix<double, 5, 5, ROOT::Math::MatRepSym<double, 5>>;
   using SMatrix5 = ROOT::Math::SVector<Double_t, 5>;
 
@@ -44,6 +44,7 @@ public:
 
   bool initTrack(FT3Track &track, bool outward = false);
   bool fit(FT3Track &track, bool outward = false);
+  void setLayersx2X0(std::vector<float_t> v) { mLayersx2X0 = v; }
 
   /// Return the maximum chi2 above which the track can be considered as
   /// abnormal
@@ -59,6 +60,7 @@ private:
              ///< abnormal
 
   bool mFieldON = true;
+  std::vector<float_t> mLayersx2X0;
 
 };
 

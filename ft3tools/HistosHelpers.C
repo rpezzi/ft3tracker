@@ -25,7 +25,7 @@ template <typename H> void exportHisto(const H &histo) {
 }
 
 //_________________________________________________________________________________________________
-void FitSlicesy(TH2F &histo1, TH2F &histo2) {
+void FitSlicesy(TH2F &histo1, TH2F &histo2, std::string title_1 = "-", std::string title_2 = "Resolution") {
   // ## FitSlicesy
   TH2F *h1 = &histo1;
   TH2F *h2 = &histo2;
@@ -53,7 +53,7 @@ void FitSlicesy(TH2F &histo1, TH2F &histo2) {
   TH2F *h1_Fit1 = (TH2F *)gDirectory->Get(
       (std::string(h1->GetName()) + std::string("_1")).c_str());
   h1_Fit1->SetStats(0);
-  h1_Fit1->SetTitle("Mean");
+  h1_Fit1->SetTitle(title_1.c_str());
   h1_Fit1->Draw();
 
   // Show fitted "sigma" for each slice
@@ -63,7 +63,7 @@ void FitSlicesy(TH2F &histo1, TH2F &histo2) {
   TH2F *h1_Fit2 = (TH2F *)gDirectory->Get(
       (std::string(h1->GetName()) + std::string("_2")).c_str());
   h1_Fit2->SetStats(0);
-  h1_Fit2->SetTitle("Sigma");
+  h1_Fit2->SetTitle(title_2.c_str());
   h1_Fit2->Draw();
 
   ////h2_InvPtResolution_0->Write();
@@ -78,8 +78,8 @@ TCanvas summary_report(H1 &histo1, H2 &histo2, H3 &histo3, H4 &histo4,
                        std::string CanvasName, std::string tlt = "Summary",
                        int h1log = 0, // 0 = linear y scale; 1 = log y scale
                        int h2log = 0, int h3log = 0, int h4log = 0,
-                       std::string h1_foot = "", std::string h2_foot = "",
-                       std::string h3_foot = "", std::string h4_foot = "") {
+                       std::string h1_foot = "-", std::string h2_foot = "-",
+                       std::string h3_foot = "-", std::string h4_foot = "-") {
   H1 *h1 = &histo1;
   H2 *h2 = &histo2;
   H3 *h3 = &histo3;

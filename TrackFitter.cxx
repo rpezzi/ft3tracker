@@ -45,10 +45,8 @@ bool TrackFitter::fit(FT3Track &track, bool outward) {
 
   if (mVerbose) {
     std::cout << "Seed covariances: \n"
-              << "MA: " << track.getCovariances() << std::endl
-              << std::endl
-              << "MB: " << track.getCovariancesB() << std::endl  << std::endl;
-
+              <<  track.getCovariances() << std::endl
+              << std::endl;
   }
 
   // recursively compute clusters, updating the track parameters
@@ -137,15 +135,6 @@ bool TrackFitter::initTrack(FT3Track &track, bool outward) {
   track.setPhi(phi0);
   track.setTanl(tanl0);
 
-  //Track model B
-  track.setXB(x0);
-  track.setYB(y0);
-  track.setZB(z0);
-  track.setPhiB(phi0);
-  track.setTant(1.0/tanl0);
-  track.setInvQPtB(invQPt0);
-
-
   SMatrix55Sym lastParamCov;
   float qptsigma = TMath::Max(std::abs(track.getInvQPt()), .5);
   float tanlsigma = TMath::Max(std::abs(track.getTanl()), .5);
@@ -158,22 +147,6 @@ bool TrackFitter::initTrack(FT3Track &track, bool outward) {
 
   track.setCovariances(lastParamCov);
   track.setTrackChi2(0.);
-
-  // TrackModel B
-  SMatrix55Sym lastParamCovB;
-  float qptsigmab = TMath::Max(std::abs(track.getInvQPtB()), .5);
-  float tantsigma = TMath::Max(std::abs(track.getTant()), .5);
-
-  lastParamCovB(0, 0) = 1;                              // <X,X>
-  lastParamCovB(1, 1) = 1;                              // <Y,X>
-  lastParamCovB(2, 2) = TMath::Pi() * TMath::Pi() / 16; // <PHI,X>
-  lastParamCovB(3, 3) = 10 * tantsigma * tantsigma;     // <TANT,X>
-  lastParamCovB(4, 4) = 10 * qptsigmab * qptsigmab;       // <INVQPT,X>
-
-  track.setCovariancesB(lastParamCovB);
-  track.setTrackChi2B(0.);
-
-
 
   return true;
 }
@@ -206,27 +179,17 @@ bool TrackFitter::computeCluster(FT3Track &track, int cluster) {
 
 
   if (mVerbose) {
-    std::cout << "MA:  BeforeExtrap: X = " << track.getX() << " Y = " << track.getY() << " Z = " << track.getZ() << " Tgl = " << track.getTanl() << "  Phi = " << track.getPhi() << " q/pt = " << track.getInvQPt() << std::endl;
-    std::cout << "MB:  BeforeExtrap: X = " << track.getXB() << " Y = " << track.getYB() << " Z = " << track.getZB() << " Tgt = " << track.getTant() << "  Phi = " << track.getPhiB() << " q/pt = " << track.getInvQPtB() << std::endl;
+    std::cout << "  BeforeExtrap: X = " << track.getX() << " Y = " << track.getY() << " Z = " << track.getZ() << " Tgl = " << track.getTanl() << "  Phi = " << track.getPhi() << " q/pt = " << track.getInvQPt() << std::endl;
   }
 
   // Propagate track to the z position of the new cluster
   //track.propagateToZhelix(clz, mBZField);
   track.propagateToZ(clz, mBZField);
-  track.propagateToZB(clz, mBZField);
-
-
-
-
 
   if (mVerbose) {
-    std::cout << "MA:   AfterExtrap: X = " << track.getX() << " Y = " << track.getY() << " Z = " << track.getZ() << " Tgl = " << track.getTanl() << "  Phi = " << track.getPhi() << " q/pt = " << track.getInvQPt() << std::endl;
-    std::cout << "MA: Track covariances after extrap: \n"
+    std::cout << "   AfterExtrap: X = " << track.getX() << " Y = " << track.getY() << " Z = " << track.getZ() << " Tgl = " << track.getTanl() << "  Phi = " << track.getPhi() << " q/pt = " << track.getInvQPt() << std::endl;
+    std::cout << " Track covariances after extrap: \n"
               << track.getCovariances() << std::endl
-              << std::endl;
-    std::cout << "MB:   AfterExtrap: X = " << track.getXB() << " Y = " << track.getYB() << " Z = " << track.getZB() << " Tgt = " << track.getTant() << "  Phi = " << track.getPhiB() << " q/pt = " << track.getInvQPtB() << std::endl;
-    std::cout << "MB: Track covariances after extrap: \n"
-              << track.getCovariancesB() << std::endl
               << std::endl;
   }
 
@@ -234,14 +197,11 @@ bool TrackFitter::computeCluster(FT3Track &track, int cluster) {
   auto Layerx2X0 = mLayersx2X0[cluster];
   auto Si_X0 = 9.5;
   auto chipThickness = Layerx2X0 * Si_X0;
-  track.addMCSEffect(-1, 0.5 * Layerx2X0);
+  track.addMCSEffect(0.5 * Layerx2X0);
 
   if (mVerbose) {
-    std::cout << "MA:   After MCS Effects II:" << std::endl
+    std::cout << "   After MCS Effects II:" << std::endl
               << track.getCovariances() << std::endl
-              << std::endl;
-    std::cout << "MB:   After MCS Effects II:" << std::endl
-              << track.getCovariancesB() << std::endl
               << std::endl;
   }
 
@@ -252,22 +212,16 @@ bool TrackFitter::computeCluster(FT3Track &track, int cluster) {
   if (track.update(pos, cov)) {
     if (mVerbose) {
       std::cout << "   New Cluster: X = " << clx << " Y = " << cly << " Z = " << clz << std::endl;
-      std::cout << "MA:   AfterKalman: X = " << track.getX() << " Y = " << track.getY() << " Z = " << track.getZ() << " Tgl = " << track.getTanl() << "  Phi = " << track.getPhi() << " q/pt = " << track.getInvQPt() << std::endl;
-      std::cout << "MA:   Track covariances after Kalman update: \n"
+      std::cout << "   AfterKalman: X = " << track.getX() << " Y = " << track.getY() << " Z = " << track.getZ() << " Tgl = " << track.getTanl() << "  Phi = " << track.getPhi() << " q/pt = " << track.getInvQPt() << std::endl;
+      std::cout << "   Track covariances after Kalman update: \n"
                 << track.getCovariances() << std::endl
                 << std::endl;
-
-      std::cout << "MB:   AfterKalman: X = " << track.getXB() << " Y = " << track.getYB() << " Z = " << track.getZB() << " Tgt = " << track.getTant() << "  Phi = " << track.getPhiB() << " q/pt = " << track.getInvQPtB() << std::endl;
-      std::cout << "MB: Track covariances after Kalman update: \n"
-                << track.getCovariancesB() << std::endl
-                << std::endl;
     }
-    track.addMCSEffect(-1, 0.5 * Layerx2X0);
+    track.addMCSEffect(0.5 * Layerx2X0);
 
     if (mVerbose) {
       std::cout << "  After MCS Effects II:  mLayersx2X0[cluster] = " << Layerx2X0 << std::endl;
-      std::cout << "MA: " << track.getCovariances() << std::endl << std::endl;
-      std::cout << "MB: " << track.getCovariancesB() << std::endl << std::endl;
+      std::cout << " " << track.getCovariances() << std::endl << std::endl;
 
     }
     return true;

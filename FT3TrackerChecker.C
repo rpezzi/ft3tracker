@@ -20,6 +20,7 @@
 #include <TGraph.h>
 #include <TH1F.h>
 #include <TH2F.h>
+#include <TH3F.h>
 #include <TMath.h>
 #include <TProfile.h>
 #include <TStyle.h>
@@ -46,10 +47,21 @@ bool InnerBorder(float_t tanl) { // -3.6
   return (abstanl > 18.1 && abstanl < 18.2855);
 }
 
+bool InnerRegion(float_t tanl) { // 3.5 < |eta| < 3.6
+  auto abstanl = std::abs(tanl);
+  return (abstanl > 16.542646 && abstanl < 18.2855);
+}
+
 bool OuterBorder(float_t tanl) { // -2.8
   auto abstanl = std::abs(tanl);
   return (abstanl > 8.1919179  && abstanl < 8.2748525 );
 }
+
+bool OuterRegion(float_t tanl) { // 2.8 < |eta| < 2.9
+  auto abstanl = std::abs(tanl);
+  return (abstanl > 8.1919179 && abstanl <  9.0595683);
+}
+
 
 bool pt_1(float_t pt) {
   return ((pt > 0.9) && (pt < 1.1));
@@ -115,14 +127,58 @@ int FT3TrackerChecker(const Char_t *trkFile = "ft3tracks.root",
   gStyle->SetTitleFillColor(10);
   gStyle->SetStatColor(10);
 
+
+  enum TH3HistosCodes {
+    kFT3TrackDeltaRVertexPtEta,
+    kFT3TrackPtResolutionPtEta,
+    kFT3TrackInvPtResolutionPtEta
+  };
+
+
+  std::map<int, const char *> TH3Names{
+    {kFT3TrackDeltaRVertexPtEta, "FT3TrackDeltaRVertexPtEta"},
+    {kFT3TrackPtResolutionPtEta, "FT3TrackPtResolutionPtEta"},
+    {kFT3TrackInvPtResolutionPtEta, "FT3TrackInvPtResolutionPtEta"}};
+ //
+ std::map<int, const char *> TH3Titles{
+   {kFT3TrackDeltaRVertexPtEta, "FT3TrackDeltaRVertexPtEta"},
+   {kFT3TrackPtResolutionPtEta, "FT3TrackPtResolutionPtEta"},
+   {kFT3TrackInvPtResolutionPtEta, "FT3TrackInvPtResolutionPtEta"}};
+
+  std::map<int, std::array<double, 9>> TH3Binning{
+    {kFT3TrackDeltaRVertexPtEta, {20, 0, 10, 12, 2.4, 3.6, 10000, -1, 1}},
+    {kFT3TrackPtResolutionPtEta, {20, 0, 10, 12, 2.4, 3.6, 1000, -2, 50}},
+    {kFT3TrackInvPtResolutionPtEta, {20, 0, 10, 12, 2.4, 3.6, 2500, -5, 150}}};
+
+  std::map<int, const char *> TH3XaxisTitles{
+    {kFT3TrackDeltaRVertexPtEta, "p_t"},
+    {kFT3TrackPtResolutionPtEta, "p_t"},
+    {kFT3TrackInvPtResolutionPtEta, "p_t"}};
+
+  //
+  std::map<int, const char *> TH3YaxisTitles{
+    {kFT3TrackDeltaRVertexPtEta, "\\eta"},
+    {kFT3TrackPtResolutionPtEta, "\\eta"},
+    {kFT3TrackInvPtResolutionPtEta, "\\eta"}};
+
+    std::map<int, const char *> TH3ZaxisTitles{
+      {kFT3TrackDeltaRVertexPtEta, "Vertex resolution (um)"},
+      {kFT3TrackPtResolutionPtEta, "(p_t residual)/pt"},
+      {kFT3TrackInvPtResolutionPtEta, "(1/p_t residual)/(1/pt)"}};
+
+
   enum TH2HistosCodes {
     kFT3TrackDeltaXYVertex,
     kFT3TrackDeltaXYVertex0_1,
     kFT3TrackDeltaXYVertex1_4,
     kFT3TrackDeltaXYVertex4plus,
-    kFT3rackQPRec_MC,
-    kFT3rackPtResolution,
-    kFT3rackInvPtResolution,
+    kFT3TrackQPRec_MC,
+    kFT3TrackPtResolution,
+    kFT3TrackPtResolutionInner,
+    kFT3TrackPtResolutionOuter,
+    kFT3TrackInvPtResolution,
+    kFT3TrackInvPtResolutionInner,
+    kFT3TrackInvPtResolutionOuter,
     kMCTracksEtaZ
   };
 
@@ -131,19 +187,27 @@ int FT3TrackerChecker(const Char_t *trkFile = "ft3tracks.root",
       {kFT3TrackDeltaXYVertex0_1, "FT3 Tracks Vertex at Z = 0 Pt0_1"},
       {kFT3TrackDeltaXYVertex1_4, "FT3 Tracks Vertex at Z = 0 Pt1_4"},
       {kFT3TrackDeltaXYVertex4plus, "FT3 Tracks Vertex at Z = 0 Pt4plus"},
-      {kFT3rackQPRec_MC, "FT3 Track QP FITxMC"},
-      {kFT3rackPtResolution, "FT3 Track Pt Resolution"},
-      {kFT3rackInvPtResolution, "FT3 Track InvPt Resolution"},
+      {kFT3TrackQPRec_MC, "FT3 Track QP FITxMC"},
+      {kFT3TrackPtResolution, "FT3 Track Pt Resolution"},
+      {kFT3TrackPtResolutionInner, "FT3 Track Pt Resolution Inner"},
+      {kFT3TrackPtResolutionOuter, "FT3 Track Pt Resolution Outer"},
+      {kFT3TrackInvPtResolution, "FT3 Track InvPt Resolution"},
+      {kFT3TrackInvPtResolutionInner, "FT3 Track InvPt ResolutionInner"},
+      {kFT3TrackInvPtResolutionOuter, "FT3 Track InvPt ResolutionOuter"},
       {kMCTracksEtaZ, "MCTracks_eta_z"}};
 
-  std::map<int, const char *> TH2Titles{
+      std::map<int, const char *> TH2Titles{
       {kFT3TrackDeltaXYVertex, "FT3 Tracks at Z_vertex"},
       {kFT3TrackDeltaXYVertex0_1, "FT3 Tracks at Z_vertex (pt < 1)"},
       {kFT3TrackDeltaXYVertex1_4, "FT3 Tracks at Z_vertex (1 < pt < 4)"},
       {kFT3TrackDeltaXYVertex4plus, "FT3 Tracks at Z_vertex (pt > 4)"},
-      {kFT3rackQPRec_MC, "Charged Momentum: Reconstructed vs MC"},
-      {kFT3rackPtResolution, "Pt Resolution"},
-      {kFT3rackInvPtResolution, "InvPt Resolution"},
+      {kFT3TrackQPRec_MC, "Charged Momentum: Reconstructed vs MC"},
+      {kFT3TrackPtResolution, "Pt Resolution"},
+      {kFT3TrackPtResolutionInner, "\\text{Pt Resolution }(3.5 < \\eta < 3.6)"},
+      {kFT3TrackPtResolutionOuter, "\\text{Pt Resolution }(2.8 < \\eta < 2.9 )"},
+      {kFT3TrackInvPtResolution, "InvPt Resolution"},
+      {kFT3TrackInvPtResolutionInner, "\\text{InvPt Resolution }(3.5 < \\eta < 3.6)"},
+      {kFT3TrackInvPtResolutionOuter, "\\text{InvPt Resolution }(2.8 < \\eta < 2.9 )"},
       {kMCTracksEtaZ, "MC Tracks: Pseudorapidity vs zVertex"}};
 
   std::map<int, std::array<double, 6>> TH2Binning{
@@ -151,29 +215,41 @@ int FT3TrackerChecker(const Char_t *trkFile = "ft3tracks.root",
       {kFT3TrackDeltaXYVertex0_1, {100, -.5, .5, 100, -.5, .5}},
       {kFT3TrackDeltaXYVertex1_4, {100, -.5, .5, 100, -.5, .5}},
       {kFT3TrackDeltaXYVertex4plus, {100, -.5, .5, 100, -.5, .5}},
-      {kFT3rackQPRec_MC, {100, -10, 10, 100, -10, 10}},
-      {kFT3rackPtResolution, {14, 0, 7, 250, 0, 25}},
-      {kFT3rackInvPtResolution, {14, 0, 7, 300, -2, 2}},
+      {kFT3TrackQPRec_MC, {100, -10, 10, 100, -10, 10}},
+      {kFT3TrackPtResolution, {10, 0, 10, 1000, -2, 50}},
+      {kFT3TrackPtResolutionInner, {10, 0, 10, 1000, -2, 50}},
+      {kFT3TrackPtResolutionOuter, {10, 0, 10, 1000, -2, 50}},
+      {kFT3TrackInvPtResolution, {10, 0, 10, 2500, -5, 150}},
+      {kFT3TrackInvPtResolutionInner, {10, 0, 10, 2500, -5, 150}},
+      {kFT3TrackInvPtResolutionOuter, {10, 0, 10, 2500, -5, 150}},
       {kMCTracksEtaZ, {31, -15, 16, 25, etaMin, etaMax}}};
 
   std::map<int, const char *> TH2XaxisTitles{
-      {kFT3TrackDeltaXYVertex, "\\Delta x ~[mm]"},
-      {kFT3TrackDeltaXYVertex0_1, "\\Delta x ~[mm]"},
-      {kFT3TrackDeltaXYVertex1_4, "\\Delta x ~[mm]"},
-      {kFT3TrackDeltaXYVertex4plus, "\\Delta x ~[mm]"},
-      {kFT3rackQPRec_MC, "(q.p)_{MC} [GeV]"},
-      {kFT3rackPtResolution, "pt_{MC} [GeV]"},
-      {kFT3rackInvPtResolution, "pt_{MC} [GeV]"},
+      {kFT3TrackDeltaXYVertex, "\\Delta x \\text{ [mm]}"},
+      {kFT3TrackDeltaXYVertex0_1, "\\Delta x \\text{ [mm]}"},
+      {kFT3TrackDeltaXYVertex1_4, "\\Delta x \\text{ [mm]}"},
+      {kFT3TrackDeltaXYVertex4plus, "\\Delta x \\text{ [mm]}"},
+      {kFT3TrackQPRec_MC, "(q.p)_{MC} [GeV]"},
+      {kFT3TrackPtResolution, "pt_{MC} [GeV]"},
+      {kFT3TrackPtResolutionInner, "pt_{MC} [GeV]"},
+      {kFT3TrackPtResolutionOuter, "pt_{MC} [GeV]"},
+      {kFT3TrackInvPtResolution, "pt_{MC} [GeV]"},
+      {kFT3TrackInvPtResolutionInner, "pt_{MC} [GeV]"},
+      {kFT3TrackInvPtResolutionOuter, "pt_{MC} [GeV]"},
       {kMCTracksEtaZ, "Vertex PosZ [cm]"}};
 
   std::map<int, const char *> TH2YaxisTitles{
-      {kFT3TrackDeltaXYVertex, "\\Delta y ~[mm]"},
-      {kFT3TrackDeltaXYVertex0_1, "\\Delta y ~[mm]"},
-      {kFT3TrackDeltaXYVertex1_4, "\\Delta y ~[mm]"},
-      {kFT3TrackDeltaXYVertex4plus, "\\Delta y ~[mm]"},
-      {kFT3rackQPRec_MC, "(q.p)_{fit} [GeV]"},
-      {kFT3rackPtResolution, "pt_{fit} / pt_{MC}"},
-      {kFT3rackInvPtResolution, "(1/(p_t)_{fit} - 1/(p_t)_{MC})*(p_t)_{MC}"},
+      {kFT3TrackDeltaXYVertex, "\\Delta y \\text{ [mm]}"},
+      {kFT3TrackDeltaXYVertex0_1, "\\Delta y \\text{ [mm]}"},
+      {kFT3TrackDeltaXYVertex1_4, "\\Delta y \\text{ [mm]}"},
+      {kFT3TrackDeltaXYVertex4plus, "\\Delta y \\text{ [mm]}"},
+      {kFT3TrackQPRec_MC, "(q.p)_{fit} [GeV]"},
+      {kFT3TrackPtResolution, "(pt_{fit} - pt_{MC}) / pt_{MC}"},
+      {kFT3TrackPtResolutionInner, "(pt_{fit} - pt_{MC}) / pt_{MC}"},
+      {kFT3TrackPtResolutionOuter, "(pt_{fit} - pt_{MC}) / pt_{MC}"},
+      {kFT3TrackInvPtResolution, "(1/(p_t)_{fit} - 1/(p_t)_{MC})/(1/(p_t)_{MC})"},
+      {kFT3TrackInvPtResolutionInner, "(1/(p_t)_{fit} - 1/(p_t)_{MC})/(1/(p_t)_{MC})"},
+      {kFT3TrackInvPtResolutionOuter, "(1/(p_t)_{fit} - 1/(p_t)_{MC})/(1/(p_t)_{MC})"},
       {kMCTracksEtaZ, "\\eta"}};
 
   enum TH1HistosCodes {
@@ -326,26 +402,26 @@ int FT3TrackerChecker(const Char_t *trkFile = "ft3tracks.root",
       {kFT3TrackQ1_4, "FT3 Tracks Charge Match (1 < pt < 4)"},
       {kFT3TrackQ4plus, "FT3 Tracks Charge Match (pt > 4)"},
       {kFT3TrackChi2, "FT3 Tracks ~ \\chi^2"},
-      {kFT3TrackXPull1_innerBorder, "TrackXPull1GeV | \\eta = -3.6"},
-      {kFT3TrackXPull1_OuterBorder, "TrackXPull1GeV | \\eta = -2.8"},
-      {kFT3TrackXPull4_innerBorder, "TrackXPull4GeV | \\eta = -3.6"},
-      {kFT3TrackXPull4_OuterBorder, "TrackXPull4GeV | \\eta = -2.8"},
-      {kFT3TrackYPull1_innerBorder, "TrackYPull1GeV | \\eta = -3.6"},
-      {kFT3TrackYPull1_OuterBorder, "TrackYPull1GeV | \\eta = -2.8"},
-      {kFT3TrackYPull4_innerBorder, "TrackYPull4GeV | \\eta = -3.6"},
-      {kFT3TrackYPull4_OuterBorder, "TrackYPull4GeV | \\eta = -2.8"},
-      {kFT3TrackPhiPull1_innerBorder, "TrackPhiPull1GeV | \\eta = -3.6"},
-      {kFT3TrackPhiPull1_OuterBorder, "TrackPhiPull1GeV | \\eta = -2.8"},
-      {kFT3TrackPhiPull4_innerBorder, "TrackPhiPull4GeV | \\eta = -3.6"},
-      {kFT3TrackPhiPull4_OuterBorder, "TrackPhiPull4GeV | \\eta = -2.8"},
-      {kFT3TrackTanlPull1_innerBorder, "TrackTanlPull1GeV | \\eta = -3.6"},
-      {kFT3TrackTanlPull1_OuterBorder, "TrackTanlPull1GeV | \\eta = -2.8"},
-      {kFT3TrackTanlPull4_innerBorder, "TrackTanlPull4GeV | \\eta = -3.6"},
-      {kFT3TrackTanlPull4_OuterBorder, "TrackTanlPull4GeV | \\eta = -2.8"},
-      {kFT3TrackInvQPtPull1_innerBorder, "TrackInvQPtPull1GeV | \\eta = -3.6"},
-      {kFT3TrackInvQPtPull1_OuterBorder, "TrackInvQPtPull1GeV | \\eta = -2.8"},
-      {kFT3TrackInvQPtPull4_innerBorder, "TrackInvQPtPull4GeV | \\eta = -3.6"},
-      {kFT3TrackInvQPtPull4_OuterBorder, "TrackInvQPtPull4GeV | \\eta = -2.8"},
+      {kFT3TrackXPull1_innerBorder, "\\text{TrackXPull1GeV } \\eta = -3.6"},
+      {kFT3TrackXPull1_OuterBorder, "\\text{TrackXPull1GeV } \\eta = -2.8"},
+      {kFT3TrackXPull4_innerBorder, "\\text{TrackXPull4GeV } \\eta = -3.6"},
+      {kFT3TrackXPull4_OuterBorder, "\\text{TrackXPull4GeV } \\eta = -2.8"},
+      {kFT3TrackYPull1_innerBorder, "\\text{TrackYPull1GeV } \\eta = -3.6"},
+      {kFT3TrackYPull1_OuterBorder, "\\text{TrackYPull1GeV } \\eta = -2.8"},
+      {kFT3TrackYPull4_innerBorder, "\\text{TrackYPull4GeV } \\eta = -3.6"},
+      {kFT3TrackYPull4_OuterBorder, "\\text{TrackYPull4GeV } \\eta = -2.8"},
+      {kFT3TrackPhiPull1_innerBorder, "\\text{TrackPhiPull1GeV } \\eta = -3.6"},
+      {kFT3TrackPhiPull1_OuterBorder, "\\text{TrackPhiPull1GeV } \\eta = -2.8"},
+      {kFT3TrackPhiPull4_innerBorder, "\\text{TrackPhiPull4GeV } \\eta = -3.6"},
+      {kFT3TrackPhiPull4_OuterBorder, "\\text{TrackPhiPull4GeV } \\eta = -2.8"},
+      {kFT3TrackTanlPull1_innerBorder, "\\text{TrackTanlPull1GeV } \\eta = -3.6"},
+      {kFT3TrackTanlPull1_OuterBorder, "\\text{TrackTanlPull1GeV } \\eta = -2.8"},
+      {kFT3TrackTanlPull4_innerBorder, "\\text{TrackTanlPull4GeV } \\eta = -3.6"},
+      {kFT3TrackTanlPull4_OuterBorder, "\\text{TrackTanlPull4GeV } \\eta = -2.8"},
+      {kFT3TrackInvQPtPull1_innerBorder, "\\text{TrackInvQPtPull1GeV } \\eta = -3.6"},
+      {kFT3TrackInvQPtPull1_OuterBorder, "\\text{TrackInvQPtPull1GeV } \\eta = -2.8"},
+      {kFT3TrackInvQPtPull4_innerBorder, "\\text{TrackInvQPtPull4GeV } \\eta = -3.6"},
+      {kFT3TrackInvQPtPull4_OuterBorder, "\\text{TrackInvQPtPull4GeV } \\eta = -2.8"},
       {kMCTrackspT, "MC Tracks p_T"},
       {kMCTracksp, "MC Tracks p"},
       {kMCTrackEta, "MC Tracks Pseudorapidity"}};
@@ -435,12 +511,12 @@ int FT3TrackerChecker(const Char_t *trkFile = "ft3tracks.root",
       {kFT3TrackDeltaPhiDeg4plus, "\\Delta \\phi ~[deg]"},
       {kFT3TrackDeltaInvQPt, "\\Delta invQPt"},
       {kFT3TrackDeltaInvQPtSeed, "\\Delta invQPt Seed"},
-      {kFT3TrackDeltaX, "\\Delta x ~[mm]"},
-      {kFT3TrackDeltaX0_1, "\\Delta x ~[mm]"},
-      {kFT3TrackDeltaX1_4, "\\Delta x ~[mm]"},
-      {kFT3TrackDeltaX4plus, "\\Delta x ~[mm]"},
-      {kFT3TrackDeltaY, "\\Delta y ~[mm]"},
-      {kFT3TrackR, "\\Delta r ~[mm]"},
+      {kFT3TrackDeltaX, "\\Delta x \\text{ [mm]}"},
+      {kFT3TrackDeltaX0_1, "\\Delta x \\text{ [mm]}"},
+      {kFT3TrackDeltaX1_4, "\\Delta x \\text{ [mm]}"},
+      {kFT3TrackDeltaX4plus, "\\Delta x \\text{ [mm]}"},
+      {kFT3TrackDeltaY, "\\Delta y \\text{ [mm]}"},
+      {kFT3TrackR, "\\Delta r \\text{ [mm]}"},
       {kFT3TrackQ, "q_{fit}-q_{MC}"},
       {kFT3TrackQ0_1, "q_{fit}-q_{MC}"},
       {kFT3TrackQ1_4, "q_{fit}-q_{MC}"},
@@ -498,9 +574,32 @@ int FT3TrackerChecker(const Char_t *trkFile = "ft3tracks.root",
     ++n2Histo;
   }
 
+
+  const int nTH3Histos = TH3Names.size();
+  std::vector<std::unique_ptr<TH3F>> TH3Histos(nTH3Histos);
+  auto n3Histo = 0;
+  for (auto &h : TH3Histos) {
+    h = std::make_unique<TH3F>(TH3Names[n3Histo], TH3Titles[n3Histo],
+                               (int)TH3Binning[n3Histo][0],
+                               TH3Binning[n3Histo][1],
+                               TH3Binning[n3Histo][2],
+                               (int)TH3Binning[n3Histo][3],
+                               TH3Binning[n3Histo][4],
+                               TH3Binning[n3Histo][5],
+                               (int)TH3Binning[n3Histo][6],
+                               TH3Binning[n3Histo][7],
+                               TH3Binning[n3Histo][8]);
+    h->GetXaxis()->SetTitle(TH3XaxisTitles[n3Histo]);
+    h->GetYaxis()->SetTitle(TH3YaxisTitles[n3Histo]);
+    h->GetZaxis()->SetTitle(TH3ZaxisTitles[n3Histo]);
+
+    //h->SetOption("COLZ");
+    ++n3Histo;
+  }
+
   // Profiles histograms
   auto PtRes_Profile = new TProfile("Pt_res_prof", "Profile of pt{fit}/pt{MC}",
-                                    28, 0, 7, 0, 20, "s");
+                                    10, 0, 10, 0, 20, "s");
   PtRes_Profile->GetXaxis()->SetTitle("pt_{MC}");
   PtRes_Profile->GetYaxis()->SetTitle("mean(Pt_{Fit}/Pt_{MC})");
 
@@ -632,6 +731,12 @@ int FT3TrackerChecker(const Char_t *trkFile = "ft3tracks.root",
         auto d_Phi = trackFT3.getPhi() - phi_MC;
         auto d_Charge = Q_fit - Q_MC;
         auto trackChi2 = trackFT3.getTrackChi2();
+
+        TH3Histos[kFT3TrackDeltaRVertexPtEta]->Fill(Pt_MC, std::abs(eta_MC), sqrt(dx*dx+dy*dy));
+        TH3Histos[kFT3TrackPtResolutionPtEta]->Fill(Pt_MC, std::abs(eta_MC), (Pt_fit - Pt_MC) / Pt_MC);
+        TH3Histos[kFT3TrackInvPtResolutionPtEta]->Fill(Pt_MC, std::abs(eta_MC), (1.0 / Pt_fit - 1.0 / Pt_MC) * Pt_MC);
+
+
         TH1Histos[kFT3TracksP]->Fill(trackFT3.getP());
         TH1Histos[kFT3TrackDeltaTanl]->Fill(d_tanl);
         TH1Histos[kFT3TrackDeltaPhi]->Fill(d_Phi);
@@ -657,10 +762,10 @@ int FT3TrackerChecker(const Char_t *trkFile = "ft3tracks.root",
         TH1Histos[kFT3TrackQ]->Fill(d_Charge);
         TH1Histos[kFT3TrackChi2]->Fill(trackChi2);
         TH2Histos[kFT3TrackDeltaXYVertex]->Fill(10.0 * dx, 10.0 * dy);
-        TH2Histos[kFT3rackQPRec_MC]->Fill(P_MC * Q_MC, P_fit * Q_fit);
-        TH2Histos[kFT3rackPtResolution]->Fill(Pt_MC, Pt_fit / Pt_MC);
+        TH2Histos[kFT3TrackQPRec_MC]->Fill(P_MC * Q_MC, P_fit * Q_fit);
+        TH2Histos[kFT3TrackPtResolution]->Fill(Pt_MC, (Pt_fit - Pt_MC) / Pt_MC);
         PtRes_Profile->Fill(Pt_MC, Pt_fit / Pt_MC);
-        TH2Histos[kFT3rackInvPtResolution]->Fill(
+        TH2Histos[kFT3TrackInvPtResolution]->Fill(
             Pt_MC, (1.0 / Pt_fit - 1.0 / Pt_MC) * Pt_MC);
 
         // MC histos
@@ -670,6 +775,22 @@ int FT3TrackerChecker(const Char_t *trkFile = "ft3tracks.root",
         TH2Histos[kMCTracksEtaZ]->Fill(vz_MC, eta_MC);
 
         // Differential histos
+
+        if ( InnerRegion(tanl_MC) ) {
+          TH2Histos[kFT3TrackPtResolutionInner]->Fill(Pt_MC, (Pt_fit - Pt_MC) / Pt_MC);
+          TH2Histos[kFT3TrackInvPtResolutionInner]->Fill(
+              Pt_MC, (1.0 / Pt_fit - 1.0 / Pt_MC) * Pt_MC);
+
+        }
+
+        if ( OuterRegion(tanl_MC) ) {
+          TH2Histos[kFT3TrackPtResolutionOuter]->Fill(Pt_MC, (Pt_fit - Pt_MC) / Pt_MC);
+          TH2Histos[kFT3TrackInvPtResolutionOuter]->Fill(
+              Pt_MC, (1.0 / Pt_fit - 1.0 / Pt_MC) * Pt_MC);
+
+        }
+
+
         if (Pt_MC <= 1.0) {
           TH2Histos[kFT3TrackDeltaXYVertex0_1]->Fill(10.0 * dx, 10.0 * dy);
           TH1Histos[kFT3TrackDeltaTanl0_1]->Fill(d_tanl);
@@ -758,41 +879,54 @@ int FT3TrackerChecker(const Char_t *trkFile = "ft3tracks.root",
                            100. * nChargeMatch / (nChargeMiss + nChargeMatch)));
 
   // Remove stat boxes
-  TH2Histos[kFT3rackQPRec_MC]->SetStats(0);
-  TH2Histos[kFT3rackPtResolution]->SetStats(0);
-  TH2Histos[kFT3rackInvPtResolution]->SetStats(0);
+  TH2Histos[kFT3TrackQPRec_MC]->SetStats(0);
+  TH2Histos[kFT3TrackPtResolution]->SetStats(0);
+  TH2Histos[kFT3TrackPtResolutionInner]->SetStats(0);
+  TH2Histos[kFT3TrackPtResolutionOuter]->SetStats(0);
+  TH2Histos[kFT3TrackInvPtResolution]->SetStats(0);
+  TH2Histos[kFT3TrackInvPtResolutionInner]->SetStats(0);
+  TH2Histos[kFT3TrackInvPtResolutionOuter]->SetStats(0);
   TH2Histos[kMCTracksEtaZ]->SetStats(0);
   PtRes_Profile->SetStats(0);
   DeltaX_Profile->SetStats(0);
   TH1Histos[kFT3TrackQ]->SetStats(0);
 
   // Fit Slices: Pt resolution
-  FitSlicesy(*TH2Histos[kFT3rackInvPtResolution], *TH2Histos[kFT3rackQPRec_MC]);
-  FitSlicesy(*TH2Histos[kFT3rackPtResolution], *TH2Histos[kFT3rackQPRec_MC]);
+  FitSlicesy(*TH2Histos[kFT3TrackInvPtResolution], *TH2Histos[kFT3TrackQPRec_MC], "E((1/pt_{fit} - 1.pt_{MC}) / (1/pt_{MC}))", "1/Pt Resolution");
+  FitSlicesy(*TH2Histos[kFT3TrackInvPtResolutionInner], *TH2Histos[kFT3TrackQPRec_MC], "E((1/pt_{fit} - 1.pt_{MC}) / (1/pt_{MC}))", "\\text{1/Pt Resolution }(3.5 < \\eta < 3.6)");
+  FitSlicesy(*TH2Histos[kFT3TrackInvPtResolutionOuter], *TH2Histos[kFT3TrackQPRec_MC], "E((1/pt_{fit} - 1.pt_{MC}) / (1/pt_{MC}))", "\\text{1/Pt Resolution }(2.8 < \\eta < 2.9 )");
+  FitSlicesy(*TH2Histos[kFT3TrackPtResolution], *TH2Histos[kFT3TrackQPRec_MC], "E((pt_{fit} - pt_{MC}) / pt_{MC})", "Pt Resolution");
+  FitSlicesy(*TH2Histos[kFT3TrackPtResolutionInner], *TH2Histos[kFT3TrackQPRec_MC], "E((pt_{fit} - pt_{MC}) / pt_{MC})", "\\text{Pt Resolution }(3.5 < \\eta < 3.6)");
+  FitSlicesy(*TH2Histos[kFT3TrackPtResolutionOuter], *TH2Histos[kFT3TrackQPRec_MC], "E((pt_{fit} - pt_{MC}) / pt_{MC})", "\\text{Pt Resolution }(2.8 < \\eta < 2.9 )");
 
-  // sigmaX resultion Profile
+
+  // sigmaX resolution Profile
   TH1D *DeltaX_Error = new TH1D();
   DeltaX_Error = DeltaX_Profile->ProjectionX("DeltaX_Error", "C=E");
 
-  // Summary Canvases
+  // pt resolution Profile
+  TH1D *pt_resolution_from_profile = new TH1D();
+  pt_resolution_from_profile = PtRes_Profile->ProjectionX("Pt Resolution from Profile", "C=E");
 
+
+  // Summary Canvases
   auto param_resolution = summary_report_3x2(
-      *TH2Histos[kFT3TrackDeltaXYVertex], *TH2Histos[kFT3rackPtResolution],
-      *PtRes_Profile, *DeltaX_Error, *TH2Histos[kFT3rackQPRec_MC], *qMatchEff,
+      *TH2Histos[kFT3TrackDeltaXYVertex], *TH2Histos[kFT3TrackPtResolution],
+      *PtRes_Profile, *DeltaX_Error, *TH2Histos[kFT3TrackQPRec_MC], *qMatchEff,
       "Param Summary", seed_cfg, 0, 0, 0, 0, 0, 0,
       Form("%.2f%%", 100.0 * TH2Histos[kFT3TrackDeltaXYVertex]->Integral() /
                          TH2Histos[kFT3TrackDeltaXYVertex]->GetEntries()),
-      Form("%.2f%%", 100.0 * TH2Histos[kFT3rackPtResolution]->Integral() /
-                         TH2Histos[kFT3rackPtResolution]->GetEntries()),
+      Form("%.2f%%", 100.0 * TH2Histos[kFT3TrackPtResolution]->Integral() /
+                         TH2Histos[kFT3TrackPtResolution]->GetEntries()),
       "-", "-",
-      Form("%.2f%%", 100.0 * TH2Histos[kFT3rackQPRec_MC]->Integral() /
-                         TH2Histos[kFT3rackQPRec_MC]->GetEntries()),
+      Form("%.2f%%", 100.0 * TH2Histos[kFT3TrackQPRec_MC]->Integral() /
+                         TH2Histos[kFT3TrackQPRec_MC]->GetEntries()),
       "-");
 
   auto covariances_summary = summary_report_3x2(
       *TH1Histos[kFT3TrackDeltaXErr], *TH1Histos[kFT3TrackDeltaPhiErr],
       *TH1Histos[kFT3TrackDeltainvQPtErr], *TH1Histos[kFT3TrackDeltaYErr],
-      *TH1Histos[kFT3TrackDeltaTanLErr], *TH2Histos[kFT3rackQPRec_MC],
+      *TH1Histos[kFT3TrackDeltaTanLErr], *TH2Histos[kFT3TrackQPRec_MC],
       "Covariances Summary", seed_cfg, 1, 1, 1, 1, 1, 0,
       Form("%.2f%%", 100.0 * TH1Histos[kFT3TrackDeltaXErr]->Integral() /
                          TH1Histos[kFT3TrackDeltaXErr]->GetEntries()),
@@ -804,13 +938,13 @@ int FT3TrackerChecker(const Char_t *trkFile = "ft3tracks.root",
                          TH1Histos[kFT3TrackDeltaYErr]->GetEntries()),
       Form("%.2f%%", 100.0 * TH1Histos[kFT3TrackDeltaTanLErr]->Integral() /
                          TH1Histos[kFT3TrackDeltaTanLErr]->GetEntries()),
-      Form("%.2f%%", 100.0 * TH2Histos[kFT3rackQPRec_MC]->Integral() /
-                         TH2Histos[kFT3rackQPRec_MC]->GetEntries()));
+      Form("%.2f%%", 100.0 * TH2Histos[kFT3TrackQPRec_MC]->Integral() /
+                         TH2Histos[kFT3TrackQPRec_MC]->GetEntries()));
 
   auto long_summary = summary_report_3x3(
       *TH2Histos[kFT3TrackDeltaXYVertex], *TH1Histos[kFT3TrackDeltaXErr],
       *TH1Histos[kFT3TrackDeltaYErr], *DeltaX_Error,
-      *TH2Histos[kFT3rackQPRec_MC], *TH1Histos[kFT3TrackDeltaPhiErr],
+      *TH2Histos[kFT3TrackQPRec_MC], *TH1Histos[kFT3TrackDeltaPhiErr],
       *qMatchEff, *TH1Histos[kFT3TrackDeltainvQPtErr],
       *TH1Histos[kFT3TrackDeltaTanLErr], "Summary3x3", seed_cfg, 0, 1, 1, 0, 0,
       1, 0, 1, 1,
@@ -821,8 +955,8 @@ int FT3TrackerChecker(const Char_t *trkFile = "ft3tracks.root",
       Form("%.2f%%", 100.0 * TH1Histos[kFT3TrackDeltaYErr]->Integral() /
                          TH1Histos[kFT3TrackDeltaYErr]->GetEntries()),
       "-",
-      Form("%.2f%%", 100.0 * TH2Histos[kFT3rackQPRec_MC]->Integral() /
-                         TH2Histos[kFT3rackQPRec_MC]->GetEntries()),
+      Form("%.2f%%", 100.0 * TH2Histos[kFT3TrackQPRec_MC]->Integral() /
+                         TH2Histos[kFT3TrackQPRec_MC]->GetEntries()),
       Form("%.2f%%", 100.0 * TH1Histos[kFT3TrackDeltaPhiErr]->Integral() /
                          TH1Histos[kFT3TrackDeltaPhiErr]->GetEntries()),
       "-",
@@ -858,28 +992,63 @@ int FT3TrackerChecker(const Char_t *trkFile = "ft3tracks.root",
                          TH1Histos[kFT3TrackDeltaPhiDeg4plus]->GetEntries()));
 
   auto pt_resolution = summary_report(
-      *TH2Histos[kFT3rackPtResolution], *TH2Histos[kFT3rackQPRec_MC],
+      *TH2Histos[kFT3TrackPtResolution], *TH2Histos[kFT3TrackQPRec_MC],
       *PtRes_Profile, *qMatchEff, "Pt Summary", seed_cfg, 0, 0, 0, 0,
-      Form("%.2f%%", 100.0 * TH2Histos[kFT3rackPtResolution]->Integral() /
-                         TH2Histos[kFT3rackPtResolution]->GetEntries()),
-      Form("%.2f%%", 100.0 * TH2Histos[kFT3rackQPRec_MC]->Integral() /
-                         TH2Histos[kFT3rackQPRec_MC]->GetEntries()));
+      Form("%.2f%%", 100.0 * TH2Histos[kFT3TrackPtResolution]->Integral() /
+                         TH2Histos[kFT3TrackPtResolution]->GetEntries()),
+      Form("%.2f%%", 100.0 * TH2Histos[kFT3TrackQPRec_MC]->Integral() /
+                         TH2Histos[kFT3TrackQPRec_MC]->GetEntries()));
+
+
+  auto pt_resolution_2 = summary_report(
+      *TH2Histos[kFT3TrackPtResolution],
+      *(TH1F *)gDirectory->Get(
+          (std::string(TH2Histos[kFT3TrackPtResolutionInner]->GetName()) +
+           std::string("_2")).c_str()),
+      *(TH1F *)gDirectory->Get(
+          (std::string(TH2Histos[kFT3TrackPtResolution]->GetName()) +
+           std::string("_1")).c_str()),
+      *(TH1F *)gDirectory->Get(
+          (std::string(TH2Histos[kFT3TrackPtResolutionOuter]->GetName()) +
+           std::string("_2"))
+              .c_str()),
+      "Pt Resolution Summary", seed_cfg, 0, 0, 0, 0,
+      Form("%.2f%%", 100.0 * TH2Histos[kFT3TrackPtResolution]->Integral() /
+                         TH2Histos[kFT3TrackPtResolution]->GetEntries()));
 
   auto invpt_resolution = summary_report(
-      *TH2Histos[kFT3rackInvPtResolution], *TH2Histos[kFT3rackQPRec_MC],
+      *TH2Histos[kFT3TrackInvPtResolution], *TH2Histos[kFT3TrackQPRec_MC],
       *(TH1F *)gDirectory->Get(
-          (std::string(TH2Histos[kFT3rackInvPtResolution]->GetName()) +
+          (std::string(TH2Histos[kFT3TrackInvPtResolution]->GetName()) +
            std::string("_1"))
               .c_str()),
       *(TH1F *)gDirectory->Get(
-          (std::string(TH2Histos[kFT3rackInvPtResolution]->GetName()) +
+          (std::string(TH2Histos[kFT3TrackInvPtResolution]->GetName()) +
            std::string("_2"))
               .c_str()),
       "InvPt Summary", seed_cfg, 0, 0, 0, 0,
-      Form("%.2f%%", 100.0 * TH2Histos[kFT3rackInvPtResolution]->Integral() /
-                         TH2Histos[kFT3rackInvPtResolution]->GetEntries()),
-      Form("%.2f%%", 100.0 * TH2Histos[kFT3rackQPRec_MC]->Integral() /
-                         TH2Histos[kFT3rackQPRec_MC]->GetEntries()));
+      Form("%.2f%%", 100.0 * TH2Histos[kFT3TrackInvPtResolution]->Integral() /
+                         TH2Histos[kFT3TrackInvPtResolution]->GetEntries()),
+      Form("%.2f%%", 100.0 * TH2Histos[kFT3TrackQPRec_MC]->Integral() /
+                         TH2Histos[kFT3TrackQPRec_MC]->GetEntries()));
+
+  auto invpt_resolution_2 = summary_report(
+      *TH2Histos[kFT3TrackInvPtResolution],
+      *(TH1F *)gDirectory->Get(
+          (std::string(TH2Histos[kFT3TrackInvPtResolutionInner]->GetName()) +
+           std::string("_2")).c_str()),
+      *(TH1F *)gDirectory->Get(
+          (std::string(TH2Histos[kFT3TrackInvPtResolution]->GetName()) +
+           std::string("_1")).c_str()),
+      *(TH1F *)gDirectory->Get(
+          (std::string(TH2Histos[kFT3TrackInvPtResolutionOuter]->GetName()) +
+           std::string("_2"))
+              .c_str()),
+      "InvPt Resolution Summary", seed_cfg, 0, 0, 0, 0,
+      Form("%.2f%%", 100.0 * TH2Histos[kFT3TrackInvPtResolution]->Integral() /
+                         TH2Histos[kFT3TrackInvPtResolution]->GetEntries()));
+
+
 
   auto vertexing_resolution = summary_report(
       *TH2Histos[kFT3TrackDeltaXYVertex], *TH1Histos[kFT3TrackDeltaX],
@@ -1005,6 +1174,12 @@ int FT3TrackerChecker(const Char_t *trkFile = "ft3tracks.root",
   outFile.mkdir("MoreHistos");
   outFile.cd("MoreHistos");
 
+  for (auto &h : TH3Histos) {
+    h->Write();
+    if (EXPORT_HISTOS_IMAGES)
+      exportHisto(*h);
+  }
+
   for (auto &h : TH2Histos) {
     h->Write();
     if (EXPORT_HISTOS_IMAGES)
@@ -1020,6 +1195,7 @@ int FT3TrackerChecker(const Char_t *trkFile = "ft3tracks.root",
   PtRes_Profile->Write();
   DeltaX_Profile->Write();
   DeltaX_Error->Write();
+  pt_resolution_from_profile->Write();
   qMatchEff->Write();
   outFile.Close();
 

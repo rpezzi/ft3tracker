@@ -129,40 +129,47 @@ int FT3TrackerChecker(const Char_t *trkFile = "ft3tracks.root",
 
 
   enum TH3HistosCodes {
-    kFT3TrackDeltaRVertexPtEta,
+    kFT3TrackDeltaXVertexPtEta,
+    kFT3TrackDeltaYVertexPtEta,
     kFT3TrackPtResolutionPtEta,
     kFT3TrackInvPtResolutionPtEta
   };
 
 
   std::map<int, const char *> TH3Names{
-    {kFT3TrackDeltaRVertexPtEta, "FT3TrackDeltaRVertexPtEta"},
+    {kFT3TrackDeltaXVertexPtEta, "FT3TrackDeltaXVertexPtEta"},
+    {kFT3TrackDeltaYVertexPtEta, "FT3TrackDeltaYVertexPtEta"},
     {kFT3TrackPtResolutionPtEta, "FT3TrackPtResolutionPtEta"},
     {kFT3TrackInvPtResolutionPtEta, "FT3TrackInvPtResolutionPtEta"}};
  //
  std::map<int, const char *> TH3Titles{
-   {kFT3TrackDeltaRVertexPtEta, "FT3TrackDeltaRVertexPtEta"},
+   {kFT3TrackDeltaXVertexPtEta, "FT3TrackDeltaXVertexPtEta"},
+   {kFT3TrackDeltaYVertexPtEta, "FT3TrackDeltaYVertexPtEta"},
    {kFT3TrackPtResolutionPtEta, "FT3TrackPtResolutionPtEta"},
    {kFT3TrackInvPtResolutionPtEta, "FT3TrackInvPtResolutionPtEta"}};
 
   std::map<int, std::array<double, 9>> TH3Binning{
-    {kFT3TrackDeltaRVertexPtEta, {20, 0, 10, 12, 2.4, 3.6, 10000, -1, 1}},
-    {kFT3TrackPtResolutionPtEta, {20, 0, 10, 12, 2.4, 3.6, 1000, -2, 50}},
-    {kFT3TrackInvPtResolutionPtEta, {20, 0, 10, 12, 2.4, 3.6, 2500, -5, 150}}};
+    {kFT3TrackDeltaYVertexPtEta, {20, 0, 10, 36, 2.4, 3.6, 4e4, -2e4, 2e4}},
+    {kFT3TrackDeltaXVertexPtEta, {50, 0, 10, 36, 2.4, 3.6, 4e4, -2e4, 2e4}},
+    {kFT3TrackPtResolutionPtEta, {20, 0, 10, 36, 2.4, 3.6, 1000, -2, 50}},
+    {kFT3TrackInvPtResolutionPtEta, {20, 0, 10, 36, 2.4, 3.6, 2500, -5, 150}}};
 
   std::map<int, const char *> TH3XaxisTitles{
-    {kFT3TrackDeltaRVertexPtEta, "p_t"},
+    {kFT3TrackDeltaXVertexPtEta, "p_t"},
+    {kFT3TrackDeltaYVertexPtEta, "p_t"},
     {kFT3TrackPtResolutionPtEta, "p_t"},
     {kFT3TrackInvPtResolutionPtEta, "p_t"}};
 
   //
   std::map<int, const char *> TH3YaxisTitles{
-    {kFT3TrackDeltaRVertexPtEta, "\\eta"},
+    {kFT3TrackDeltaXVertexPtEta, "\\eta"},
+    {kFT3TrackDeltaYVertexPtEta, "\\eta"},
     {kFT3TrackPtResolutionPtEta, "\\eta"},
     {kFT3TrackInvPtResolutionPtEta, "\\eta"}};
 
     std::map<int, const char *> TH3ZaxisTitles{
-      {kFT3TrackDeltaRVertexPtEta, "Vertex resolution (um)"},
+      {kFT3TrackDeltaXVertexPtEta, "X residual at vertex (um)"},
+      {kFT3TrackDeltaYVertexPtEta, "Y residual at vertex (um)"},
       {kFT3TrackPtResolutionPtEta, "(p_t residual)/pt"},
       {kFT3TrackInvPtResolutionPtEta, "(1/p_t residual)/(1/pt)"}};
 
@@ -732,7 +739,8 @@ int FT3TrackerChecker(const Char_t *trkFile = "ft3tracks.root",
         auto d_Charge = Q_fit - Q_MC;
         auto trackChi2 = trackFT3.getTrackChi2();
 
-        TH3Histos[kFT3TrackDeltaRVertexPtEta]->Fill(Pt_MC, std::abs(eta_MC), sqrt(dx*dx+dy*dy));
+        TH3Histos[kFT3TrackDeltaXVertexPtEta]->Fill(Pt_MC, std::abs(eta_MC), 1e4 * dx);
+        TH3Histos[kFT3TrackDeltaYVertexPtEta]->Fill(Pt_MC, std::abs(eta_MC), 1e4 * dy);
         TH3Histos[kFT3TrackPtResolutionPtEta]->Fill(Pt_MC, std::abs(eta_MC), (Pt_fit - Pt_MC) / Pt_MC);
         TH3Histos[kFT3TrackInvPtResolutionPtEta]->Fill(Pt_MC, std::abs(eta_MC), (1.0 / Pt_fit - 1.0 / Pt_MC) * Pt_MC);
 

@@ -44,6 +44,7 @@ bool TrackFitter::fit(FT3Track &track, bool outward) {
   auto nClusters = track.getNumberOfPoints();
 
   if (mVerbose) {
+    std::cout << "Seed Parameters: X = " << track.getX() << " Y = " << track.getY() << " Z = " << track.getZ() << " Tgl = " << track.getTanl() << "  Phi = " << track.getPhi() << " q/pt = " << track.getInvQPt() << std::endl;
     std::cout << "Seed covariances: \n"
               <<  track.getCovariances() << std::endl
               << std::endl;
@@ -200,7 +201,7 @@ bool TrackFitter::computeCluster(FT3Track &track, int cluster) {
   track.addMCSEffect(0.5 * Layerx2X0);
 
   if (mVerbose) {
-    std::cout << "   After MCS Effects II:" << std::endl
+    std::cout << "   After MCS Effects I:" << std::endl
               << track.getCovariances() << std::endl
               << std::endl;
   }

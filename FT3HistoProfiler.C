@@ -18,269 +18,224 @@
 #include <TStyle.h>
 #include <TProfile2D.h>
 
+// Estimages pt and vertexing resolution from TH3 histograms produced by FT3TrackerChecker
+//
+//_________________________________________________________________________________________
+void FT3HistoProfiler()
+{
+  gStyle->SetHistLineWidth(3);
+  gStyle->SetFrameLineWidth(3);
+  gStyle->SetLineWidth(3);
+  gStyle->SetPalette(107);
+  TFile* chkFileIn = new TFile("Fittercheck_ft3tracks.root");
+  auto FT3TrackPtResolutionPtEta = (TH3F*)chkFileIn->Get("MoreHistos/FT3TrackPtResolutionPtEta");
+  //auto C3D = new TCanvas();
+  //FT3TrackPtResolutionPtEta->RebinX(2);
+  //FT3TrackPtResolutionPtEta->Draw();
+  bool first = true;
+  auto CPtRes = new TCanvas();
+  int marker = kFullCircle;
+  for (auto etamin : {2.8, 2.9, 3.0, 3.1, 3.2, 3.3, 3.4, 3.5}) {
+    auto etamax = etamin + 0.1;
 
+    FT3TrackPtResolutionPtEta->GetYaxis()->SetRangeUser(etamin, etamax);
+    auto title = Form("PtRes_%1.1f_%1.1f_xz", etamin, etamax);
+    auto a = (TH2F*)FT3TrackPtResolutionPtEta->Project3D(title);
 
-void profiler() {
+    //a->SetTitle(Form("%f < \\eta < %f",etamin,etamax));
+    // new TCanvas();
+    //a->Draw("colz");
 
-TFile *chkFileIn = new TFile("Fittercheck_ft3tracks.root");
-auto FT3TrackInvPtResolutionPtEta = (TH3F *)chkFileIn->Get("MoreHistos/FT3TrackInvPtResolutionPtEta");
-auto C3D = new TCanvas();
-//FT3TrackInvPtResolutionPtEta->RebinX(2);
-FT3TrackInvPtResolutionPtEta->Draw();
-bool first = true;
-auto CPtRes = new TCanvas();
+    a->FitSlicesX(0, 0, -1, 1);
+    auto th2PtResolution = (TH2F*)gDirectory->Get((std::string(a->GetName()) + std::string("_2")).c_str());
+    th2PtResolution->SetTitle(Form("%1.1f < \\eta < %1.1f", etamin, etamax));
+    th2PtResolution->SetMarkerStyle(marker++);
+    if (first) {
+      th2PtResolution->SetStats(0);
+      th2PtResolution->GetYaxis()->SetTitle("pt resolution");
 
-for (auto etamin : {2.8, 2.9, 3.0, 3.1, 3.2, 3.3, 3.4}) {
-auto etamax = etamin + 0.1;
+      th2PtResolution->Draw("PLC PMC");
+      first = false;
+    } else {
+      th2PtResolution->SetStats(0);
+      th2PtResolution->Draw("PLC PMC same");
+    }
+  }
+  CPtRes->BuildLegend();
 
-FT3TrackInvPtResolutionPtEta->GetYaxis()->SetRangeUser(etamin,etamax);
-auto title = Form("InvQPtRes_%1.1f_%1.1f_xz",etamin, etamax);
-auto a = (TH2F *)FT3TrackInvPtResolutionPtEta->Project3D(title);
+  // InvPtResolution vs pt
+  auto FT3TrackInvPtResolutionPtEta = (TH3F*)chkFileIn->Get("MoreHistos/FT3TrackInvPtResolutionPtEta");
+  //FT3TrackPtResolutionPtEta->GetXaxis()->SetRangeUser(-1,20);
 
+  //auto C3DInvPy = new TCanvas();
+  //FT3TrackInvPtResolutionPtEta->RebinX(2);
+  //FT3TrackInvPtResolutionPtEta->Draw();
+  first = true;
+  auto CPtResInvPy = new TCanvas();
+  marker = kFullCircle;
+  for (auto etamin : {2.8, 2.9, 3.0, 3.1, 3.2, 3.3, 3.4, 3.5}) { // 10 Hits
+    //for (auto etamin : {2.4, 2.5, 2.6, 2.7, 2.8, 2.9, 3.0, 3.1, 3.2, 3.3, 3.4, 3.5}) { // 7 Hits
 
-//a->SetTitle(Form("%f < \\eta < %f",etamin,etamax));
- //new TCanvas();
-//a->Draw("colz");
+    auto etamax = etamin + 0.1;
 
+    FT3TrackInvPtResolutionPtEta->GetYaxis()->SetRangeUser(etamin, etamax);
+    //FT3TrackInvPtResolutionPtEta->GetXaxis()->SetRangeUser(-1,20);
 
+    auto title = Form("InvQPtRes_%1.1f_%1.1f_xz", etamin, etamax);
+    auto a = (TH2F*)FT3TrackInvPtResolutionPtEta->Project3D(title);
+    a->GetXaxis()->SetRangeUser(-1, 20);
 
-a->FitSlicesX(0,0,-1,1);
-auto th2InvPtResolution = (TH2F *)gDirectory->Get((std::string(a->GetName())+std::string("_2")).c_str());
-th2InvPtResolution->SetTitle(Form("%1.1f < \\eta < %1.1f",etamin,etamax));
-if(first) {
-    th2InvPtResolution->SetStats(0);
-    th2InvPtResolution->Draw("PLC PMC");
-    first=false;
-} else {
-    th2InvPtResolution->SetStats(0);
-    th2InvPtResolution->Draw("PLC PMC same");
-}
-}
-CPtRes->BuildLegend();
+    //a->SetTitle(Form("%f < \\eta < %f",etamin,etamax));
+    //new TCanvas();
+    //a->Draw("colz");
 
-}
+    a->FitSlicesX(0, 0, -1, 1);
+    auto th2InvPtResolution = (TH2F*)gDirectory->Get((std::string(a->GetName()) + std::string("_2")).c_str());
+    th2InvPtResolution->SetTitle(Form("%1.1f < \\eta < %1.1f", etamin, etamax));
+    th2InvPtResolution->SetMarkerStyle(marker++);
 
-void func3() {
-gStyle->SetHistLineWidth(3);
-gStyle->SetFrameLineWidth(3);
-gStyle->SetLineWidth(3);
-gStyle->SetPalette(107);
-TFile *chkFileIn = new TFile("Fittercheck_ft3tracks.root");
-auto FT3TrackPtResolutionPtEta = (TH3F *)chkFileIn->Get("MoreHistos/FT3TrackPtResolutionPtEta");
-//auto C3D = new TCanvas();
-//FT3TrackPtResolutionPtEta->RebinX(2);
-//FT3TrackPtResolutionPtEta->Draw();
-bool first = true;
-auto CPtRes = new TCanvas();
-int marker = kFullCircle;
-for (auto etamin : {2.8, 2.9, 3.0, 3.1, 3.2, 3.3, 3.4, 3.5}) {
-auto etamax = etamin + 0.1;
+    if (first) {
+      th2InvPtResolution->SetStats(0);
+      th2InvPtResolution->GetYaxis()->SetTitle("(1/pt) resolution");
+      th2InvPtResolution->Draw("PLC PMC");
+      first = false;
+    } else {
+      th2InvPtResolution->SetStats(0);
+      th2InvPtResolution->Draw("PLC PMC same");
+    }
+  }
+  CPtResInvPy->BuildLegend();
 
-FT3TrackPtResolutionPtEta->GetYaxis()->SetRangeUser(etamin,etamax);
-auto title = Form("PtRes_%1.1f_%1.1f_xz",etamin, etamax);
-auto a = (TH2F *)FT3TrackPtResolutionPtEta->Project3D(title);
+  // InvPtResolution vs eta
+  //FT3TrackPtResolutionPtEta->GetXaxis()->SetRangeUser(-1,20);
+  FT3TrackInvPtResolutionPtEta = (TH3F*)chkFileIn->Get("MoreHistos/FT3TrackInvPtResolutionPtEta");
+  FT3TrackInvPtResolutionPtEta->GetYaxis()->SetRange(0, 0);
+  //FT3TrackInvPtResolutionPtEta->GetXaxis()->SetRange(2.8,3.6);
 
+  //auto C3DInvPyEta = new TCanvas();
+  //FT3TrackInvPtResolutionPtEta->RebinX(2);
+  //FT3TrackInvPtResolutionPtEta->Draw();
+  first = true;
+  auto CPtResInvPyEta = new TCanvas();
+  marker = kFullCircle;
+  for (auto ptmin : {1., 2., 4., 6., 8., 9.}) {
+    auto ptmax = ptmin + 1.;
 
-//a->SetTitle(Form("%f < \\eta < %f",etamin,etamax));
-// new TCanvas();
-//a->Draw("colz");
+    FT3TrackInvPtResolutionPtEta->GetXaxis()->SetRangeUser(ptmin, ptmax);
+    //FT3TrackInvPtResolutionPtEta->GetXaxis()->SetRangeUser(-1,20);
 
+    auto title = Form("InvQPtResEta_%1.1f_%1.1f_yz", ptmin, ptmax);
+    auto a = (TH2F*)FT3TrackInvPtResolutionPtEta->Project3D(title);
+    a->GetXaxis()->SetRangeUser(-1, 10);
 
-a->FitSlicesX(0,0,-1,1);
-auto th2PtResolution = (TH2F *)gDirectory->Get((std::string(a->GetName())+std::string("_2")).c_str());
-th2PtResolution->SetTitle(Form("%1.1f < \\eta < %1.1f",etamin,etamax));
-th2PtResolution->SetMarkerStyle(marker++);
-if(first) {
-    th2PtResolution->SetStats(0);
-    th2PtResolution->GetYaxis()->SetTitle("pt resolution");
+    //a->SetTitle(Form("%f < p_t < %f",ptmin,ptmax));
+    //new TCanvas();
+    //a->Draw("colz");
 
-    th2PtResolution->Draw("PLC PMC");
-    first=false;
-} else {
-    th2PtResolution->SetStats(0);
-    th2PtResolution->Draw("PLC PMC same");
-}
-}
-CPtRes->BuildLegend();
+    a->FitSlicesX(0, 0, -1, 1);
+    auto th2InvPtResolutionEta = (TH2F*)gDirectory->Get((std::string(a->GetName()) + std::string("_2")).c_str());
+    th2InvPtResolutionEta->SetTitle(Form("%1.1f < p_t < %1.1f", ptmin, ptmax));
+    th2InvPtResolutionEta->SetMarkerStyle(marker++);
 
-// InvPtResolution vs pt
-auto FT3TrackInvPtResolutionPtEta = (TH3F *)chkFileIn->Get("MoreHistos/FT3TrackInvPtResolutionPtEta");
-//FT3TrackPtResolutionPtEta->GetXaxis()->SetRangeUser(-1,20);
+    if (first) {
+      th2InvPtResolutionEta->SetStats(0);
+      th2InvPtResolutionEta->GetYaxis()->SetTitle("(1/pt) resolution");
+      th2InvPtResolutionEta->Draw("PLC PMC");
+      first = false;
+    } else {
+      th2InvPtResolutionEta->SetStats(0);
+      th2InvPtResolutionEta->Draw("PLC PMC same");
+    }
+  }
+  CPtResInvPyEta->BuildLegend();
 
-//auto C3DInvPy = new TCanvas();
-//FT3TrackInvPtResolutionPtEta->RebinX(2);
-//FT3TrackInvPtResolutionPtEta->Draw();
-first = true;
-auto CPtResInvPy = new TCanvas();
-marker = kFullCircle;
-for (auto etamin : {2.8, 2.9, 3.0, 3.1, 3.2, 3.3, 3.4, 3.5}) { // 10 Hits
-//for (auto etamin : {2.4, 2.5, 2.6, 2.7, 2.8, 2.9, 3.0, 3.1, 3.2, 3.3, 3.4, 3.5}) { // 7 Hits
+  //
+  // Vertexing resolution vs eta
+  //FT3TrackPtResolutionPtEta->GetXaxis()->SetRangeUser(-1,20);
+  auto FT3TrackDeltaXVertexPtEta = (TH3F*)chkFileIn->Get("MoreHistos/FT3TrackDeltaXVertexPtEta");
+  FT3TrackDeltaXVertexPtEta->GetYaxis()->SetRange(0, 0);
+  //FT3TrackDeltaXVertexPtEta->GetXaxis()->SetRange(2.8,3.6);
 
-auto etamax = etamin + 0.1;
+  //auto C3DInvPyEta = new TCanvas();
+  FT3TrackDeltaXVertexPtEta->RebinY(2);
+  //FT3TrackDeltaXVertexPtEta->Draw();
+  first = true;
+  auto CPtResVertEta = new TCanvas();
+  marker = kFullCircle;
+  //for (auto ptmin : {1., 2., 4., 6., 8., 9.}) {
+  for (auto ptmin : {1., 2., 4., 6., 9.}) {
 
-FT3TrackInvPtResolutionPtEta->GetYaxis()->SetRangeUser(etamin,etamax);
-//FT3TrackInvPtResolutionPtEta->GetXaxis()->SetRangeUser(-1,20);
+    auto ptmax = ptmin + 0.5;
 
-auto title = Form("InvQPtRes_%1.1f_%1.1f_xz",etamin, etamax);
-auto a = (TH2F *)FT3TrackInvPtResolutionPtEta->Project3D(title);
-a->GetXaxis()->SetRangeUser(-1,20);
+    FT3TrackDeltaXVertexPtEta->GetXaxis()->SetRangeUser(ptmin, ptmax);
+    //FT3TrackDeltaXVertexPtEta->GetXaxis()->SetRangeUser(-1,20);
 
-//a->SetTitle(Form("%f < \\eta < %f",etamin,etamax));
-//new TCanvas();
-//a->Draw("colz");
+    auto title = Form("VertXResEta_%1.1f_%1.1f_yz", ptmin, ptmax);
+    auto a = (TH2F*)FT3TrackDeltaXVertexPtEta->Project3D(title);
+    a->GetXaxis()->SetRangeUser(-1, 10);
 
-a->FitSlicesX(0,0,-1,1);
-auto th2InvPtResolution = (TH2F *)gDirectory->Get((std::string(a->GetName())+std::string("_2")).c_str());
-th2InvPtResolution->SetTitle(Form("%1.1f < \\eta < %1.1f",etamin,etamax));
-th2InvPtResolution->SetMarkerStyle(marker++);
+    //a->SetTitle(Form("%f < p_t < %f",ptmin,ptmax));
+    //new TCanvas();
+    //a->Draw("colz");
 
-if(first) {
-    th2InvPtResolution->SetStats(0);
-    th2InvPtResolution->GetYaxis()->SetTitle("(1/pt) resolution");
-    th2InvPtResolution->Draw("PLC PMC");
-    first=false;
-} else {
-    th2InvPtResolution->SetStats(0);
-    th2InvPtResolution->Draw("PLC PMC same");
-}
-}
-CPtResInvPy->BuildLegend();
+    a->FitSlicesX(0, 0, -1, 1);
+    auto th2VertEta = (TH2F*)gDirectory->Get((std::string(a->GetName()) + std::string("_2")).c_str());
+    th2VertEta->SetTitle(Form("%1.1f < p_t < %1.1f", ptmin, ptmax));
+    th2VertEta->SetMarkerStyle(marker++);
 
+    if (first) {
+      th2VertEta->SetStats(0);
+      th2VertEta->GetYaxis()->SetTitle("\\sigma_x \\text{ @ Vertex } (\\mu m)");
+      th2VertEta->Draw("PLC PMC");
+      first = false;
+    } else {
+      th2VertEta->SetStats(0);
+      th2VertEta->Draw("PLC PMC same");
+    }
+  }
+  CPtResVertEta->BuildLegend();
 
-// InvPtResolution vs eta
-//FT3TrackPtResolutionPtEta->GetXaxis()->SetRangeUser(-1,20);
-FT3TrackInvPtResolutionPtEta = (TH3F *)chkFileIn->Get("MoreHistos/FT3TrackInvPtResolutionPtEta");
-FT3TrackInvPtResolutionPtEta->GetYaxis()->SetRange(0,0);
-//FT3TrackInvPtResolutionPtEta->GetXaxis()->SetRange(2.8,3.6);
+  // Vertexing resolution vs pt
+  FT3TrackDeltaXVertexPtEta = (TH3F*)chkFileIn->Get("MoreHistos/FT3TrackDeltaXVertexPtEta");
+  FT3TrackDeltaXVertexPtEta->GetYaxis()->SetRange(0, 0);
+  FT3TrackDeltaXVertexPtEta->GetXaxis()->SetRange(0, 0);
 
-//auto C3DInvPyEta = new TCanvas();
-//FT3TrackInvPtResolutionPtEta->RebinX(2);
-//FT3TrackInvPtResolutionPtEta->Draw();
-first = true;
-auto CPtResInvPyEta = new TCanvas();
-marker = kFullCircle;
-for (auto ptmin : {1., 2., 4., 6., 8., 9.}) {
-auto ptmax = ptmin + 1.;
+  //auto C3DInvPy = new TCanvas();
+  //FT3TrackInvPtResolutionPtEta->RebinX(2);
+  //FT3TrackInvPtResolutionPtEta->Draw();
+  first = true;
+  auto CVertexResEta = new TCanvas();
+  marker = kFullCircle;
+  for (auto etamin : {2.8, 2.9, 3.0, 3.1, 3.2, 3.3, 3.4, 3.5}) { // 10 Hits
+    //for (auto etamin : {2.4, 2.5, 2.6, 2.7, 2.8, 2.9, 3.0, 3.1, 3.2, 3.3, 3.4, 3.5}) { // 7 Hits
 
-FT3TrackInvPtResolutionPtEta->GetXaxis()->SetRangeUser(ptmin,ptmax);
-//FT3TrackInvPtResolutionPtEta->GetXaxis()->SetRangeUser(-1,20);
+    auto etamax = etamin + 0.1;
 
-auto title = Form("InvQPtResEta_%1.1f_%1.1f_yz",ptmin, ptmax);
-auto a = (TH2F *)FT3TrackInvPtResolutionPtEta->Project3D(title);
-a->GetXaxis()->SetRangeUser(-1,10);
+    FT3TrackDeltaXVertexPtEta->GetYaxis()->SetRangeUser(etamin, etamax);
+    //FT3TrackInvPtResolutionPtEta->GetXaxis()->SetRangeUser(-1,20);
 
-//a->SetTitle(Form("%f < p_t < %f",ptmin,ptmax));
-//new TCanvas();
-//a->Draw("colz");
+    auto title = Form("VertResPt_%1.1f_%1.1f_xz", etamin, etamax);
+    auto a = (TH2F*)FT3TrackDeltaXVertexPtEta->Project3D(title);
+    //a->GetXaxis()->SetRangeUser(-1,20);
 
-a->FitSlicesX(0,0,-1,1);
-auto th2InvPtResolutionEta = (TH2F *)gDirectory->Get((std::string(a->GetName())+std::string("_2")).c_str());
-th2InvPtResolutionEta->SetTitle(Form("%1.1f < p_t < %1.1f",ptmin,ptmax));
-th2InvPtResolutionEta->SetMarkerStyle(marker++);
+    a->SetTitle(title);
+    //new TCanvas();
+    //a->Draw("colz");
 
-if(first) {
-    th2InvPtResolutionEta->SetStats(0);
-    th2InvPtResolutionEta->GetYaxis()->SetTitle("(1/pt) resolution");
-    th2InvPtResolutionEta->Draw("PLC PMC");
-    first=false;
-} else {
-    th2InvPtResolutionEta->SetStats(0);
-    th2InvPtResolutionEta->Draw("PLC PMC same");
-}
-}
-CPtResInvPyEta->BuildLegend();
+    a->FitSlicesX(0, 0, -1, 1);
+    auto th2VertResolutionPt = (TH2F*)gDirectory->Get((std::string(a->GetName()) + std::string("_2")).c_str());
+    th2VertResolutionPt->SetTitle(Form("%1.1f < \\eta < %1.1f", etamin, etamax));
+    th2VertResolutionPt->SetMarkerStyle(marker++);
 
-
-// 
-// Vertexing resolution vs eta
-//FT3TrackPtResolutionPtEta->GetXaxis()->SetRangeUser(-1,20);
-auto FT3TrackDeltaXVertexPtEta = (TH3F *)chkFileIn->Get("MoreHistos/FT3TrackDeltaXVertexPtEta");
-FT3TrackDeltaXVertexPtEta->GetYaxis()->SetRange(0,0);
-//FT3TrackDeltaXVertexPtEta->GetXaxis()->SetRange(2.8,3.6);
-
-//auto C3DInvPyEta = new TCanvas();
-FT3TrackDeltaXVertexPtEta->RebinY(2);
-//FT3TrackDeltaXVertexPtEta->Draw();
-first = true;
-auto CPtResVertEta = new TCanvas();
-marker = kFullCircle;
-//for (auto ptmin : {1., 2., 4., 6., 8., 9.}) {
-for (auto ptmin : {1., 2., 4., 6., 9.}) {
-
-auto ptmax = ptmin + 0.5;
-
-FT3TrackDeltaXVertexPtEta->GetXaxis()->SetRangeUser(ptmin,ptmax);
-//FT3TrackDeltaXVertexPtEta->GetXaxis()->SetRangeUser(-1,20);
-
-auto title = Form("VertXResEta_%1.1f_%1.1f_yz",ptmin, ptmax);
-auto a = (TH2F *)FT3TrackDeltaXVertexPtEta->Project3D(title);
-a->GetXaxis()->SetRangeUser(-1,10);
-
-//a->SetTitle(Form("%f < p_t < %f",ptmin,ptmax));
-//new TCanvas();
-//a->Draw("colz");
-
-a->FitSlicesX(0,0,-1,1);
-auto th2VertEta = (TH2F *)gDirectory->Get((std::string(a->GetName())+std::string("_2")).c_str());
-th2VertEta->SetTitle(Form("%1.1f < p_t < %1.1f",ptmin,ptmax));
-th2VertEta->SetMarkerStyle(marker++);
-
-if(first) {
-    th2VertEta->SetStats(0);
-    th2VertEta->GetYaxis()->SetTitle("\\sigma_x \\text{ @ Vertex } (\\mu m)");
-    th2VertEta->Draw("PLC PMC");
-    first=false;
-} else {
-    th2VertEta->SetStats(0);
-    th2VertEta->Draw("PLC PMC same");
-}
-}
-CPtResVertEta->BuildLegend();
-
-
-// Vertexing resolution vs pt
-FT3TrackDeltaXVertexPtEta = (TH3F *)chkFileIn->Get("MoreHistos/FT3TrackDeltaXVertexPtEta");
-FT3TrackDeltaXVertexPtEta->GetYaxis()->SetRange(0,0);
-FT3TrackDeltaXVertexPtEta->GetXaxis()->SetRange(0,0);
-
-
-//auto C3DInvPy = new TCanvas();
-//FT3TrackInvPtResolutionPtEta->RebinX(2);
-//FT3TrackInvPtResolutionPtEta->Draw();
-first = true;
-auto CVertexResEta = new TCanvas();
-marker = kFullCircle;
-for (auto etamin : {2.8, 2.9, 3.0, 3.1, 3.2, 3.3, 3.4, 3.5}) { // 10 Hits
-//for (auto etamin : {2.4, 2.5, 2.6, 2.7, 2.8, 2.9, 3.0, 3.1, 3.2, 3.3, 3.4, 3.5}) { // 7 Hits
-
-auto etamax = etamin + 0.1;
-
-FT3TrackDeltaXVertexPtEta->GetYaxis()->SetRangeUser(etamin,etamax);
-//FT3TrackInvPtResolutionPtEta->GetXaxis()->SetRangeUser(-1,20);
-
-auto title = Form("VertResPt_%1.1f_%1.1f_xz",etamin, etamax);
-auto a = (TH2F *)FT3TrackDeltaXVertexPtEta->Project3D(title);
-//a->GetXaxis()->SetRangeUser(-1,20);
-
-a->SetTitle(title);
-//new TCanvas();
-//a->Draw("colz");
-
-a->FitSlicesX(0,0,-1,1);
-auto th2VertResolutionPt = (TH2F *)gDirectory->Get((std::string(a->GetName())+std::string("_2")).c_str());
-th2VertResolutionPt->SetTitle(Form("%1.1f < \\eta < %1.1f",etamin,etamax));
-th2VertResolutionPt->SetMarkerStyle(marker++);
-
-if(first) {
-    th2VertResolutionPt->SetStats(0);
-    th2VertResolutionPt->GetYaxis()->SetTitle("\\sigma_x \\text{ @ Vertex } (\\mu m)");
-    th2VertResolutionPt->Draw("PLC PMC");
-    first=false;
-} else {
-    th2VertResolutionPt->SetStats(0);
-    th2VertResolutionPt->Draw("PLC PMC same");
-}
-}
-CVertexResEta->BuildLegend();
-
+    if (first) {
+      th2VertResolutionPt->SetStats(0);
+      th2VertResolutionPt->GetYaxis()->SetTitle("\\sigma_x \\text{ @ Vertex } (\\mu m)");
+      th2VertResolutionPt->Draw("PLC PMC");
+      first = false;
+    } else {
+      th2VertResolutionPt->SetStats(0);
+      th2VertResolutionPt->Draw("PLC PMC same");
+    }
+  }
+  CVertexResEta->BuildLegend();
 }

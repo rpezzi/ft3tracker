@@ -127,7 +127,6 @@ int FT3TrackerChecker(const Char_t *trkFile = "ft3tracks.root",
   gStyle->SetTitleFillColor(10);
   gStyle->SetStatColor(10);
 
-
   enum TH3HistosCodes {
     kFT3TrackDeltaXVertexPtEta,
     kFT3TrackDeltaYVertexPtEta,
@@ -135,18 +134,17 @@ int FT3TrackerChecker(const Char_t *trkFile = "ft3tracks.root",
     kFT3TrackInvPtResolutionPtEta
   };
 
-
-  std::map<int, const char *> TH3Names{
+  std::map<int, const char*> TH3Names{
     {kFT3TrackDeltaXVertexPtEta, "FT3TrackDeltaXVertexPtEta"},
     {kFT3TrackDeltaYVertexPtEta, "FT3TrackDeltaYVertexPtEta"},
     {kFT3TrackPtResolutionPtEta, "FT3TrackPtResolutionPtEta"},
     {kFT3TrackInvPtResolutionPtEta, "FT3TrackInvPtResolutionPtEta"}};
- //
- std::map<int, const char *> TH3Titles{
-   {kFT3TrackDeltaXVertexPtEta, "FT3TrackDeltaXVertexPtEta"},
-   {kFT3TrackDeltaYVertexPtEta, "FT3TrackDeltaYVertexPtEta"},
-   {kFT3TrackPtResolutionPtEta, "FT3TrackPtResolutionPtEta"},
-   {kFT3TrackInvPtResolutionPtEta, "FT3TrackInvPtResolutionPtEta"}};
+  //
+  std::map<int, const char*> TH3Titles{
+    {kFT3TrackDeltaXVertexPtEta, "FT3TrackDeltaXVertexPtEta"},
+    {kFT3TrackDeltaYVertexPtEta, "FT3TrackDeltaYVertexPtEta"},
+    {kFT3TrackPtResolutionPtEta, "FT3TrackPtResolutionPtEta"},
+    {kFT3TrackInvPtResolutionPtEta, "FT3TrackInvPtResolutionPtEta"}};
 
   std::map<int, std::array<double, 9>> TH3Binning{
     {kFT3TrackDeltaYVertexPtEta, {20, 0, 10, 36, 2.4, 3.6, 4e4, -2e4, 2e4}},
@@ -154,25 +152,24 @@ int FT3TrackerChecker(const Char_t *trkFile = "ft3tracks.root",
     {kFT3TrackPtResolutionPtEta, {20, 0, 10, 36, 2.4, 3.6, 1000, -2, 50}},
     {kFT3TrackInvPtResolutionPtEta, {20, 0, 10, 36, 2.4, 3.6, 2500, -5, 150}}};
 
-  std::map<int, const char *> TH3XaxisTitles{
+  std::map<int, const char*> TH3XaxisTitles{
     {kFT3TrackDeltaXVertexPtEta, "p_t"},
     {kFT3TrackDeltaYVertexPtEta, "p_t"},
     {kFT3TrackPtResolutionPtEta, "p_t"},
     {kFT3TrackInvPtResolutionPtEta, "p_t"}};
 
   //
-  std::map<int, const char *> TH3YaxisTitles{
+  std::map<int, const char*> TH3YaxisTitles{
     {kFT3TrackDeltaXVertexPtEta, "\\eta"},
     {kFT3TrackDeltaYVertexPtEta, "\\eta"},
     {kFT3TrackPtResolutionPtEta, "\\eta"},
     {kFT3TrackInvPtResolutionPtEta, "\\eta"}};
 
-    std::map<int, const char *> TH3ZaxisTitles{
-      {kFT3TrackDeltaXVertexPtEta, "X residual at vertex (um)"},
-      {kFT3TrackDeltaYVertexPtEta, "Y residual at vertex (um)"},
-      {kFT3TrackPtResolutionPtEta, "(p_t residual)/pt"},
-      {kFT3TrackInvPtResolutionPtEta, "(1/p_t residual)/(1/pt)"}};
-
+  std::map<int, const char*> TH3ZaxisTitles{
+    {kFT3TrackDeltaXVertexPtEta, "X residual at vertex (um)"},
+    {kFT3TrackDeltaYVertexPtEta, "Y residual at vertex (um)"},
+    {kFT3TrackPtResolutionPtEta, "(p_t residual)/pt"},
+    {kFT3TrackInvPtResolutionPtEta, "(1/p_t residual)/(1/pt)"}};
 
   enum TH2HistosCodes {
     kFT3TrackDeltaXYVertex,

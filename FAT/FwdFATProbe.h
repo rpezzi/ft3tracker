@@ -33,10 +33,10 @@ class FwdFATProbe : public o2::track::TrackParCovFwd
     float tanlsigma = TMath::Max((float)std::abs(getTanl()), .5f);
 
     covariances(0, 0) = 1;                              // <X,X>
-    covariances(1, 1) = 1;                              // <Y,X>
-    covariances(2, 2) = TMath::Pi() * TMath::Pi() / 16; // <PHI,X>
-    covariances(3, 3) = 10. * tanlsigma * tanlsigma;    // <TANL,X>
-    covariances(4, 4) = 10. * qptsigma * qptsigma;      // <INVQPT,X>
+    covariances(1, 1) = 1;                              // <Y,Y>
+    covariances(2, 2) = TMath::Pi() * TMath::Pi() / 16; // <PHI,PHI>
+    covariances(3, 3) = 10. * tanlsigma * tanlsigma;    // <TANL,TANL>
+    covariances(4, 4) = 10. * qptsigma * qptsigma;      // <INVQPT,INVQPT>
     setCovariances(covariances);
     if (mVerbose) {
       std::cout << std::endl
@@ -60,30 +60,31 @@ class FwdFATProbe : public o2::track::TrackParCovFwd
     const std::array<float, 2>& pos = {(const float)getX(), (const float)getY()};
     const std::array<float, 2>& cov = {sigma2, sigma2};
 
-    addMCSEffect(0.5 * Layerx2X0);
-    //if (mVerbose) {
-    //  std::cout << "  UpdateFat After MCS1: " << std::endl;
-    //  print();
-    //}
-
     update(pos, cov);
     if (mVerbose) {
       std::cout << "  UpdateFat After Kalman: " << std::endl;
       print();
     }
 
-    addMCSEffect(0.5 * Layerx2X0);
-    if (mVerbose) {
-      std::cout << "  UpdateFat After MCS2: " << std::endl;
-      print();
+    if (Layerx2X0 != 0) {
+      addMCSEffect(Layerx2X0);
+      if (mVerbose) {
+        std::cout << "  UpdateFat After MCS: " << std::endl;
+        print();
+      }
     }
   }
 
-  Float_t getPtResolution()
+  Float_t getInvQPtResolution()
   {
-
-    //propagateToZ(mStartingParameters.getZ(), mZField);
     return (std::sqrt(getCovariances()(4, 4)) * getPt());
+  }
+
+  Float_t getVertexSigmaXResolution()
+  {
+    FwdFATProbe tempprobe(*this);
+    tempprobe.propagateToZ(mStartingParameters.getZ(), mZField);
+    return (1.0e4 * std::sqrt(tempprobe.getCovariances()(0, 0))); // microns
   }
 
   void print()

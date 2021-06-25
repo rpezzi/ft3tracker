@@ -22,28 +22,31 @@
 #include <TLinearFitter.h>
 #include <list>
 
-namespace o2 {
-namespace ft3 {
+namespace o2
+{
+namespace ft3
+{
 
-class TrackFitter {
+class TrackFitter
+{
 
   using SMatrix55Sym =
-      ROOT::Math::SMatrix<double, 5, 5, ROOT::Math::MatRepSym<double, 5>>;
+    ROOT::Math::SMatrix<double, 5, 5, ROOT::Math::MatRepSym<double, 5>>;
   using SMatrix5 = ROOT::Math::SVector<Double_t, 5>;
 
-public:
+ public:
   TrackFitter() = default;
   ~TrackFitter() = default;
 
-  TrackFitter(const TrackFitter &) = delete;
-  TrackFitter &operator=(const TrackFitter &) = delete;
-  TrackFitter(TrackFitter &&) = delete;
-  TrackFitter &operator=(TrackFitter &&) = delete;
+  TrackFitter(const TrackFitter&) = delete;
+  TrackFitter& operator=(const TrackFitter&) = delete;
+  TrackFitter(TrackFitter&&) = delete;
+  TrackFitter& operator=(TrackFitter&&) = delete;
 
   void setBz(float bZ);
 
-  bool initTrack(FT3Track &track, bool outward = false);
-  bool fit(FT3Track &track, bool outward = false);
+  bool initTrack(FT3Track& track, bool outward = false);
+  bool fit(FT3Track& track, bool outward = false);
   void setLayersx2X0(std::vector<float_t> v) { mLayersx2X0 = v; }
 
   /// Return the maximum chi2 above which the track can be considered as
@@ -51,24 +54,23 @@ public:
   static constexpr double getMaxChi2() { return SMaxChi2; }
   bool mVerbose = false;
 
-private:
-  bool computeCluster(FT3Track &track, int cluster);
+ private:
+  bool computeCluster(FT3Track& track, int cluster);
 
   Float_t mBZField; // kiloGauss.
   static constexpr double SMaxChi2 =
-      2.e10; ///< maximum chi2 above which the track can be considered as
-             ///< abnormal
+    2.e10; ///< maximum chi2 above which the track can be considered as
+           ///< abnormal
 
   bool mFieldON = true;
   std::vector<float_t> mLayersx2X0;
-
 };
 
 // Functions to estimate momentum and charge from track curvature
-Double_t invQPtFromFCF(const FT3Track &track, Double_t bFieldZ, Double_t &chi2);
-Bool_t LinearRegression(Int_t nVal, Double_t *xVal, Double_t *yVal,
-                        Double_t *yErr, Double_t &a, Double_t &ae, Double_t &b,
-                        Double_t &be);
+Double_t invQPtFromFCF(const FT3Track& track, Double_t bFieldZ, Double_t& chi2);
+Bool_t LinearRegression(Int_t nVal, Double_t* xVal, Double_t* yVal,
+                        Double_t* yErr, Double_t& a, Double_t& ae, Double_t& b,
+                        Double_t& be);
 
 } // namespace ft3
 } // namespace o2

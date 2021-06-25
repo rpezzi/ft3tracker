@@ -18,27 +18,30 @@
 #include "SimulationDataFormat/MCCompLabel.h"
 #include <vector>
 
-namespace o2 {
-namespace ft3 {
+namespace o2
+{
+namespace ft3
+{
 
 using o2::itsmft::Hit;
 
-class FT3Track : public o2::mft::TrackMFT {
-public:
+class FT3Track : public o2::mft::TrackMFT
+{
+ public:
   FT3Track() = default;
-  FT3Track(const FT3Track &t) = default;
+  FT3Track(const FT3Track& t) = default;
   ~FT3Track() = default;
-  const std::vector<Float_t> &getXCoordinates() const { return mX; }
-  const std::vector<Float_t> &getYCoordinates() const { return mY; }
-  const std::vector<Float_t> &getZCoordinates() const { return mZ; }
-  const std::vector<Float_t> &getSigmasX2() const { return mSigmaX2; }
-  const std::vector<Float_t> &getSigmasY2() const { return mSigmaY2; }
-  const std::vector<Int_t> &getLayers() const { return mLayer; }
-  const std::vector<Int_t> &getHitsId() const { return mHitId; }
-  void addHit(const Hit &ht, const Int_t hitId, const Float_t sigma, Bool_t smear);
+  const std::vector<Float_t>& getXCoordinates() const { return mX; }
+  const std::vector<Float_t>& getYCoordinates() const { return mY; }
+  const std::vector<Float_t>& getZCoordinates() const { return mZ; }
+  const std::vector<Float_t>& getSigmasX2() const { return mSigmaX2; }
+  const std::vector<Float_t>& getSigmasY2() const { return mSigmaY2; }
+  const std::vector<Int_t>& getLayers() const { return mLayer; }
+  const std::vector<Int_t>& getHitsId() const { return mHitId; }
+  void addHit(const Hit& ht, const Int_t hitId, const Float_t sigma, Bool_t smear);
   void sort();
 
-private:
+ private:
   std::vector<Float_t> mX;
   std::vector<Float_t> mY;
   std::vector<Float_t> mZ;
@@ -51,10 +54,11 @@ private:
 };
 
 //_________________________________________________________________________________________________
-inline void FT3Track::addHit(const Hit &ht, const Int_t hitId, const Float_t sigma = 8.44e-4, Bool_t smear =  true) {
-  TRandom rnd(0);
-  auto x = ht.GetStartX() + (smear ? rnd.Gaus(0,sigma) : 0 );
-  auto y = ht.GetStartY() + (smear ? rnd.Gaus(0,sigma) : 0 );
+inline void FT3Track::addHit(const Hit& ht, const Int_t hitId, const Float_t sigma = 8.44e-4, Bool_t smear = true)
+{
+  TRandom3 rnd(0);
+  auto x = ht.GetStartX() + (smear ? rnd.Gaus(0, sigma) : 0);
+  auto y = ht.GetStartY() + (smear ? rnd.Gaus(0, sigma) : 0);
   auto sigma2 = sigma * sigma;
   mX.emplace_back(x);
   mY.emplace_back(y);
@@ -64,11 +68,11 @@ inline void FT3Track::addHit(const Hit &ht, const Int_t hitId, const Float_t sig
   mLayer.emplace_back(ht.GetDetectorID());
   mHitId.emplace_back(hitId);
   setNumberOfPoints(mX.size());
-
 }
 
 //_________________________________________________________________________________________________
-inline void FT3Track::sort() {
+inline void FT3Track::sort()
+{
   // Orders elements along z position
   struct HitData {
     Float_t x;
@@ -82,7 +86,7 @@ inline void FT3Track::sort() {
 
   // Loading hit data
   for (auto point = 0; point < (int)getNumberOfPoints(); ++point) {
-    auto &somepoint = points.emplace_back();
+    auto& somepoint = points.emplace_back();
     somepoint.x = mX[point];
     somepoint.y = mY[point];
     somepoint.z = mZ[point];

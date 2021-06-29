@@ -8,13 +8,15 @@
 
 using o2::ft3::FT3Track;
 using o2::itsmft::Hit;
+using SMatrix55Sym = ROOT::Math::SMatrix<double, 5, 5, ROOT::Math::MatRepSym<double, 5>>;
 
-bool DEBUG_VERBOSE = false;
-std::vector<float> layersX2X0 = {};
+bool DEBUG_VERBOSE = true;
+//std::vector<Double_t> layersX2X0 = {};
 
-std::vector<float_t> loadx2X0fromFile(std::string configFileName);
+std::vector<Double_t> loadx2X0fromFile(std::string configFileName);
+void setSeedCovariances(FT3Track& track);
 
-void ft3Tracker()
+void ft3Tracker(Double_t clResolution = 8.44e-4) // clResolution = 8.44e-4
 {
 
   o2::ft3::TrackFitter fitter;
@@ -59,7 +61,7 @@ void ft3Tracker()
       Hit* thisHit = &(*hit)[iHit];
       Int_t myID = thisHit->GetTrackID();
       FwdTracksMap[myID] = FwdTracksMap[myID];
-      FwdTracksMap[myID].addHit(*thisHit, iHit);
+      FwdTracksMap[myID].addHit(*thisHit, iHit, clResolution, true);
     }
   }
 
@@ -80,24 +82,17 @@ void ft3Tracker()
       auto& trackID = iter->first;
       auto& track = iter->second;
       auto nHits = track.getNumberOfPoints();
-      if (nHits > 3) {
+      if (nHits > 6) {
+        track.sort();
         fitter.initTrack(track);
+        setSeedCovariances(track);
         fitter.fit(track);
-        //if (std::abs(track.getTanl()) < 40 and track.getP() < 500) { // filter
         recoTracks->emplace_back(track);
         recoTrackIDs->emplace_back(trackID);
-        //}
-      }
-      if (fitter.mVerbose) {
-        cout << "\n[TrackID = " << trackID << ", nHits = " << nHits
-             << "] LayerIDs, zCoord => ";
-        for (auto i = 0; i < nHits; i++) {
-          std::cout << " " << track.getLayers()[i] << ", "
-                    << track.getZCoordinates()[i] << " ";
+        if (fitter.mVerbose) {
           if (nPrintTracks > 10)
             fitter.mVerbose = false;
         }
-        std::cout << std::endl;
       }
       ++iter;
       nPrintTracks++;
@@ -108,15 +103,15 @@ void ft3Tracker()
   FT3TracksFileOut->Write();
 }
 
-std::vector<float_t> loadx2X0fromFile(std::string configFileName = "FT3_layout.cfg")
+std::vector<Double_t> loadx2X0fromFile(std::string configFileName = "FT3_layout.cfg")
 {
-  std::vector<float_t> Layersx2X0;
+  std::vector<Double_t> Layersx2X0;
   std::ifstream ifs(configFileName.c_str());
   if (!ifs.good()) {
     LOG(FATAL) << " Invalid FT3Base.configFile!";
   }
   std::string tempstr;
-  float z_layer, r_in, r_out, Layerx2X0;
+  Double_t z_layer, r_in, r_out, Layerx2X0;
   char delimiter;
   int layerNumber = 0;
   while (std::getline(ifs, tempstr)) {
@@ -135,4 +130,23 @@ std::vector<float_t> loadx2X0fromFile(std::string configFileName = "FT3_layout.c
     LOG(INFO) << " loadx2X0fromFile z =  " << z_layer << " ; x/X0 = " << Layerx2X0 << std::endl;
   }
   return Layersx2X0;
+}
+
+void setSeedCovariances(FT3Track& track)
+{
+
+  auto tan_k = 10.0;
+  auto q2pt_c = 10.;
+  auto phi_c = 1 / 16.;
+
+  SMatrix55Sym Covariances{}; ///< \brief Covariance matrix of track parameters
+  Double_t q2ptcov = TMath::Max(std::abs(track.getInvQPt()), .5);
+  Double_t tanlerr = TMath::Max(std::abs(track.getTanl()), .5);
+
+  Covariances(0, 0) = 1;
+  Covariances(1, 1) = 1;
+  Covariances(2, 2) = phi_c * TMath::Pi() * TMath::Pi();
+  Covariances(3, 3) = tan_k * tanlerr * tanlerr;
+  Covariances(4, 4) = q2pt_c * q2ptcov * q2ptcov;
+  track.setCovariances(Covariances);
 }

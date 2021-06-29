@@ -4,14 +4,17 @@
 std::vector<Float_t> zPositionsMFT{-45.3, -46.7, -48.6, -50.0, -52.4, -53.8, -67.7, -69.1, -76., -77.5};
 std::vector<Float_t> zPositionsFT3{-16., -20., -24., -77., -100., -122., -150., -180., -220., -279.};
 std::vector<Float_t> x2X0FT3{0.001, 0.001, 0.001, 0.01, 0.01, 0.01, 0.01, 0.01, 0.01, 0.01};
-//std::vector<Float_t> x2X0FT3{1e-6, 1e-6, 1e-6, 1e-6, 1e-6, 1e-6, 1e-6, 1e-6, 1e-6, 1e-6};
+//std::vector<Float_t> x2X0FT3(10,1e-7);
+
+
+
 
 Float_t EtaToTanl(Float_t eta)
 {
   return tan(TMath::Pi() / 2 - 2 * atan(exp(-eta)));
 }
 
-void FWDFat(float eta = 2.6)
+void FWDFat_(float eta = 2.6, Float_t sigma = 8.44e-4)
 {
 
   Float_t tanl0 = EtaToTanl(eta);
@@ -31,7 +34,6 @@ void FWDFat(float eta = 2.6)
     //auto phi0 = 2.03355;
     //auto tanl0 = -6;
     //auto invqpt = 1;
-    Float_t sigma = 8.44e-4;
     Float_t sigma2 = sigma * sigma;
     Float_t zField = 5.0;
 
@@ -65,7 +67,7 @@ void FWDFat(float eta = 2.6)
   }
 }
 
-void FWDFat(float eta = 2.6, float pt = 1.0)
+void FWDFat(float eta = 2.6, float pt = 1.0, Float_t sigma = 8.44e-4)
 {
 
   Float_t tanl0 = EtaToTanl(eta);
@@ -84,7 +86,6 @@ void FWDFat(float eta = 2.6, float pt = 1.0)
   //auto phi0 = 2.03355;
   //auto tanl0 = -6;
   //auto invqpt = 1;
-  Float_t sigma = 8.44e-4;
   Float_t sigma2 = sigma * sigma;
   Float_t zField = 5.0;
 
@@ -183,7 +184,7 @@ float FT3FATvtxXRes(float pt, float eta, float sigma = 8.44e-4, float zField = 5
 void checkFT3FATPtRes(float pt, float eta, float sigma = 8.44e-4, float zField = 5.0)
 {
   auto ptres_noMC = FT3FATPtRes(pt, eta, sigma, false);
-  auto ptres_onlyMC = FT3FATPtRes(pt, eta, 1e-10, true);
+  auto ptres_onlyMC = FT3FATPtRes(pt, eta, 1e-7, true);
   auto ptres_combined = sqrt(ptres_noMC * ptres_noMC + ptres_onlyMC * ptres_onlyMC);
   auto ptres_FAT = FT3FATPtRes(pt, eta, sigma);
   std::cout << " ptres_noMC = " << ptres_noMC << std::endl;
@@ -199,7 +200,7 @@ std::vector<float> getFATPtRes_pts_at_eta(std::vector<float> pts, float eta, flo
   std::vector<float> ptResolutions;
   for (auto pt : pts) {
     auto ptres = FT3FATPtRes(pt, eta, sigma, enableMCS);
-    std::cout << "pt =  " << pt << " eta = " << eta << " ptRes = " << ptres << std::endl;
+    //std::cout << "pt =  " << pt << " eta = " << eta << " ptRes = " << ptres << std::endl;
     ptResolutions.push_back(ptres);
   }
   return ptResolutions;
@@ -211,7 +212,7 @@ std::vector<float> getFATPtRes_etas_at_pt(std::vector<float> etas, float pt, flo
   std::vector<float> ptResolutions;
   for (auto eta : etas) {
     auto ptres = FT3FATPtRes(pt, eta, sigma, enableMCS);
-    std::cout << "pt =  " << pt << " eta = " << eta << " ptRes = " << ptres << std::endl;
+    //std::cout << "pt =  " << pt << " eta = " << eta << " ptRes = " << ptres << std::endl;
     ptResolutions.push_back(ptres);
   }
   return ptResolutions;
@@ -223,7 +224,7 @@ std::vector<float> getFATvtxXRes_etas_at_pt(std::vector<float> etas, float pt, f
   std::vector<float> vtxResolutions;
   for (auto eta : etas) {
     auto vtxRes = FT3FATvtxXRes(pt, eta, sigma, enableMCS);
-    std::cout << "pt =  " << pt << " eta = " << eta << " vtxRes = " << vtxRes << std::endl;
+    //std::cout << "pt =  " << pt << " eta = " << eta << " vtxRes = " << vtxRes << std::endl;
     vtxResolutions.push_back(vtxRes);
   }
   return vtxResolutions;
@@ -235,7 +236,7 @@ std::vector<float> getFATvtxXRes_pts_at_eta(std::vector<float> pts, float eta, f
   std::vector<float> vtxResolutions;
   for (auto pt : pts) {
     auto vtxRes = FT3FATvtxXRes(pt, eta, sigma, enableMCS);
-    std::cout << "pt =  " << pt << " eta = " << eta << " vtxRes = " << vtxRes << std::endl;
+    //std::cout << "pt =  " << pt << " eta = " << eta << " vtxRes = " << vtxRes << std::endl;
     vtxResolutions.push_back(vtxRes);
   }
   return vtxResolutions;

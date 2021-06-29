@@ -49,7 +49,7 @@ void simFT3Tracks(size_t nTracks, float ptMinCut, float ptMax, float etaMin, flo
 
 o2::ft3::TrackFitter fitter;
 o2::track::TrackParFwd MCTrack_;
-FT3Track probe;
+o2::mft::TrackMFT probe;
 TRandom3 rnd(0);
 float pixelPitch;
 float clSigma;
@@ -67,13 +67,13 @@ void FwdTrackerDebugger(size_t nTracks = 1000,
   clSigma = clSigma_;
   enableClusterSmearing = enableClusterSmearing_;
 
-  Double_t ptMax = 20.0;
+  Double_t ptMax = 10.0;
   Double_t ptMin = 0.1;
   Double_t etaMin = -3.8;
   Double_t etaMax = -0.85;
   auto ptmincut = 0.0001;
   fitter.setBz(zField);
-  fitter.setLayersx2X0(loadx2X0fromFile("FT3_layout.cfg"));
+  fitter.setLayersx2X0(std::vector<float>(10,0.0)); // Disable MCS effects
   fitter.mVerbose = DEBUG_fitter;
   //fitter.setTrackModel(o2::mft::MFTTrackModel::Helix);
   //fitter.setTrackModel(o2::mft::MFTTrackModel::Quadratic);
@@ -106,7 +106,7 @@ void FwdTrackerDebugger(size_t nTracks = 1000,
     {kFT3TrackDeltaXVertexPtEta, {20, 0, 10, 84, 1.7, 4.5, 4e4, -2e4, 2e4}},
     {kFT3TrackDeltaYVertexPtEta, {50, 0, 10, 84, 1.7, 4.5, 4e4, -2e4, 2e4}},
     {kFT3TrackInvQPtPullPtEta, {200, 0, 20, 84, 1.7, 4.5, 200, -5, 5}},
-    {kFT3TrackInvQPtResolutionPtEta, {200, 0, 20, 84, 1.7, 4.5, 400, -2, 2}}};
+    {kFT3TrackInvQPtResolutionPtEta, {200, 0, 20, 84, 1.7, 4.5, 1000, -1, 1}}};
 
   std::map<int, const char*> TH3XaxisTitles{
     {kFT3TrackDeltaXVertexPtEta, "p_t"},
@@ -221,7 +221,7 @@ void simFwdTracks(size_t nTracks, float ptMinCut, float ptMax, float etaMin, flo
     if (DEBUG_VERBOSE)
       std::cout << "  Track at vertex: X = " << ft3ProbeTr.getX() << " Y = " << ft3ProbeTr.getY() << " Z = " << ft3ProbeTr.getZ() << " Tgl = " << ft3ProbeTr.getTanl() << "  Phi = " << ft3ProbeTr.getPhi() << "  (" << o2::math_utils::toPMPiGen(ft3ProbeTr.getPhi()) << ")  q/pt = " << ft3ProbeTr.getInvQPt() << std::endl;
 
-    probe = (FT3Track)ft3ProbeTr;
+    probe = (o2::mft::TrackMFT)ft3ProbeTr;
     trkDBGTree->Fill();
 
     auto vx_MC = MCTrack.getX();

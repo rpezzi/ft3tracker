@@ -736,6 +736,7 @@ int FT3TrackerChecker(const Char_t* trkFile = "ft3tracks.root",
           Q_MC = 0;
           // std::cout << " => pdgcode ERROR " << Q_MC <<  "\n";
         }
+        auto invQPt_MC = 1.0*Q_MC/thisTrack->GetPt();
 
         trackFT3.propagateToZhelix(vz_MC, field_z);
 
@@ -745,6 +746,7 @@ int FT3TrackerChecker(const Char_t* trkFile = "ft3tracks.root",
         auto d_eta = trackFT3.getEta() - eta_MC;
         auto d_tanl = trackFT3.getTanl() - tanl_MC;
         auto Pt_fit = trackFT3.getPt();
+        auto invQPt_Fit = trackFT3.getInvQPt();
         auto invQPt_seed = trackFT3.getInvQPtSeed();
         auto d_invQPt = Q_fit / Pt_fit - Q_MC / Pt_MC;
         auto d_invQPtSeed = invQPt_seed - Q_fit / Pt_fit;
@@ -760,7 +762,7 @@ int FT3TrackerChecker(const Char_t* trkFile = "ft3tracks.root",
         TH3Histos[kFT3TrackPtResolutionPtEta]->Fill(Pt_MC, std::abs(eta_MC), (Pt_fit - Pt_MC) / Pt_MC);
         TH3Histos[kFT3TrackInvQPtPullPtEta]->Fill(Pt_MC, std::abs(eta_MC), d_invQPt / sqrt(trackFT3.getCovariances()(4, 4)));
         TH3Histos[kFT3TrackInvPtResolutionPtEta]->Fill(Pt_MC, std::abs(eta_MC), (1.0 / Pt_fit - 1.0 / Pt_MC) * Pt_MC);
-        TH3Histos[kFT3TrackInvQPtResolutionPtEta]->Fill(Pt_MC, std::abs(eta_MC), (Q_fit / Pt_fit - Q_MC / Pt_MC) * Pt_MC * Q_MC);
+        TH3Histos[kFT3TrackInvQPtResolutionPtEta]->Fill(Pt_MC, std::abs(eta_MC), (invQPt_Fit - invQPt_MC) / invQPt_MC);
 
         TH1Histos[kFT3TracksP]->Fill(trackFT3.getP());
         TH1Histos[kFT3TrackDeltaTanl]->Fill(d_tanl);

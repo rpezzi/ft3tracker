@@ -16,7 +16,7 @@ class FwdFATProbe : public o2::track::TrackParCovFwd
   FwdFATProbe() = default;
   FwdFATProbe(const FwdFATProbe& t) = default;
   ~FwdFATProbe() = default;
-  void init(const Float_t phi0, const Float_t tanl0, const Float_t invqpt0, const Float_t lastZ, const Float_t zField)
+  void init(const Double_t phi0, const Double_t tanl0, const Double_t invqpt0, const Double_t lastZ, const Double_t zField)
   {
     mZField = zField;
     SMatrix5 parameters = {0, 0, phi0, tanl0, invqpt0};
@@ -29,8 +29,8 @@ class FwdFATProbe : public o2::track::TrackParCovFwd
     propagateParamToZhelix(lastZ, mZField);
 
     SMatrix55Sym covariances;
-    float qptsigma = TMath::Max((float)std::abs(getInvQPt()), .5f);
-    float tanlsigma = TMath::Max((float)std::abs(getTanl()), .5f);
+    Double_t qptsigma = TMath::Max((Double_t)std::abs(getInvQPt()), .5);
+    Double_t tanlsigma = TMath::Max((Double_t)std::abs(getTanl()), .5);
 
     covariances(0, 0) = 1;                              // <X,X>
     covariances(1, 1) = 1;                              // <Y,Y>
@@ -45,7 +45,7 @@ class FwdFATProbe : public o2::track::TrackParCovFwd
     }
   }
 
-  void updateFAT(const Float_t nextZ, Float_t sigma2, Float_t Layerx2X0)
+  void updateFAT(const Float_t nextZ, Float_t sigma2, Double_t Layerx2X0)
   {
     if (mVerbose) {
       std::cout << std::endl
@@ -57,8 +57,8 @@ class FwdFATProbe : public o2::track::TrackParCovFwd
       std::cout << "  UpdateFat After Propagation: " << std::endl;
       print();
     }
-    const std::array<float, 2>& pos = {(const float)getX(), (const float)getY()};
-    const std::array<float, 2>& cov = {sigma2, sigma2};
+    const std::array<Float_t, 2>& pos = {(const Float_t)getX(), (const Float_t)getY()};
+    const std::array<Float_t, 2>& cov = {sigma2, sigma2};
 
     update(pos, cov);
     if (mVerbose) {
@@ -75,12 +75,12 @@ class FwdFATProbe : public o2::track::TrackParCovFwd
     }
   }
 
-  Float_t getInvQPtResolution()
+  Double_t getInvQPtResolution()
   {
     return (std::sqrt(getCovariances()(4, 4)) * getPt());
   }
 
-  Float_t getVertexSigmaXResolution()
+  Double_t getVertexSigmaXResolution()
   {
     FwdFATProbe tempprobe(*this);
     tempprobe.propagateToZ(mStartingParameters.getZ(), mZField);
@@ -97,7 +97,7 @@ class FwdFATProbe : public o2::track::TrackParCovFwd
 
   bool mVerbose = false;
   o2::track::TrackParFwd mStartingParameters;
-  Float_t mZField;
+  Double_t mZField;
 };
 
 #endif /* O2_FWD_FAT_PROBE_H_ */

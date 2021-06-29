@@ -21,11 +21,14 @@
 
 using o2::math_utils::fitGaus;
 
-namespace o2 {
-namespace ft3 {
+namespace o2
+{
+namespace ft3
+{
 
 //_________________________________________________________________________________________________
-void TrackFitter::setBz(float bZ) {
+void TrackFitter::setBz(Double_t bZ)
+{
 
   /// Set the constant magnetic field
   mBZField = bZ;
@@ -36,7 +39,8 @@ void TrackFitter::setBz(float bZ) {
 }
 
 //_________________________________________________________________________________________________
-bool TrackFitter::fit(FT3Track &track, bool outward) {
+bool TrackFitter::fit(FT3Track& track, bool outward)
+{
 
   /// Fit a track using its attached clusters
   /// Returns false in case of failure
@@ -46,7 +50,7 @@ bool TrackFitter::fit(FT3Track &track, bool outward) {
   if (mVerbose) {
     std::cout << "Seed Parameters: X = " << track.getX() << " Y = " << track.getY() << " Z = " << track.getZ() << " Tgl = " << track.getTanl() << "  Phi = " << track.getPhi() << " q/pt = " << track.getInvQPt() << std::endl;
     std::cout << "Seed covariances: \n"
-              <<  track.getCovariances() << std::endl
+              << track.getCovariances() << std::endl
               << std::endl;
   }
 
@@ -58,8 +62,8 @@ bool TrackFitter::fit(FT3Track &track, bool outward) {
         return false;
       }
     }
-  } else { // Outward for MCH matching
-    int ncl = 0;//1;
+  } else {       // Outward for MCH matching
+    int ncl = 0; //1;
     while (ncl < nClusters) {
       if (!computeCluster(track, ncl)) {
         return false;
@@ -71,15 +75,23 @@ bool TrackFitter::fit(FT3Track &track, bool outward) {
     //  Print final covariances? std::cout << "Track covariances:";
     //  track->getCovariances().Print();
     std::cout << "Track Chi2 = " << track.getTrackChi2() << std::endl;
-    std::cout << " ***************************** Done fitting "
-                 "*****************************\n";
+    cout << "\n[nClusters = " << track.getNumberOfPoints() << "] LayerIDs, zCoord => ";
+    for (auto i = 0; i < track.getNumberOfPoints(); i++) {
+      std::cout << " " << track.getLayers()[i] << ", "
+                << track.getZCoordinates()[i] << " ";
+    }
+    std::cout << std::endl
+              << std::endl
+              << std::endl;
+    std::cout << " ***************************** Done fitting *****************************\n";
   }
 
   return true;
 }
 
 //_________________________________________________________________________________________________
-bool TrackFitter::initTrack(FT3Track &track, bool outward) {
+bool TrackFitter::initTrack(FT3Track& track, bool outward)
+{
 
   // initialize the starting track parameters
   double sigmainvQPtsq;
@@ -137,8 +149,8 @@ bool TrackFitter::initTrack(FT3Track &track, bool outward) {
   track.setTanl(tanl0);
 
   SMatrix55Sym lastParamCov;
-  float qptsigma = TMath::Max(std::abs(track.getInvQPt()), .5);
-  float tanlsigma = TMath::Max(std::abs(track.getTanl()), .5);
+  Double_t qptsigma = TMath::Max(std::abs(track.getInvQPt()), .5);
+  Double_t tanlsigma = TMath::Max(std::abs(track.getTanl()), .5);
 
   lastParamCov(0, 0) = 1;                              // <X,X>
   lastParamCov(1, 1) = 1;                              // <Y,X>
@@ -153,17 +165,18 @@ bool TrackFitter::initTrack(FT3Track &track, bool outward) {
 }
 
 //_________________________________________________________________________________________________
-bool TrackFitter::computeCluster(FT3Track &track, int cluster) {
+bool TrackFitter::computeCluster(FT3Track& track, int cluster)
+{
   /// Propagate track to the z position of the new cluster
   /// accounting for MCS dispersion in the current layer and the other(s)
   /// crossed Recompute the parameters adding the cluster constraint with the
   /// Kalman filter Returns false in case of failure
 
-  const auto &clx = track.getXCoordinates()[cluster];
-  const auto &cly = track.getYCoordinates()[cluster];
-  const auto &clz = track.getZCoordinates()[cluster];
-  const auto &sigmaX2 = track.getSigmasX2()[cluster];
-  const auto &sigmaY2 = track.getSigmasY2()[cluster];
+  const auto& clx = track.getXCoordinates()[cluster];
+  const auto& cly = track.getYCoordinates()[cluster];
+  const auto& clz = track.getZCoordinates()[cluster];
+  const auto& sigmaX2 = track.getSigmasX2()[cluster];
+  const auto& sigmaY2 = track.getSigmasY2()[cluster];
 
   /*if (track.getZ() == clz) {
     LOG(INFO) << "AddCluster ERROR: The new cluster must be upstream!"
@@ -176,8 +189,6 @@ bool TrackFitter::computeCluster(FT3Track &track, int cluster) {
     std::cout << "computeCluster:     X = " << clx << " Y = " << cly
               << " Z = " << clz << " nCluster = " << cluster << std::endl;
   }
-
-
 
   if (mVerbose) {
     std::cout << "  BeforeExtrap: X = " << track.getX() << " Y = " << track.getY() << " Z = " << track.getZ() << " Tgl = " << track.getTanl() << "  Phi = " << track.getPhi() << " q/pt = " << track.getInvQPt() << std::endl;
@@ -196,19 +207,17 @@ bool TrackFitter::computeCluster(FT3Track &track, int cluster) {
 
   // add MCS effects for the new cluster
   auto Layerx2X0 = mLayersx2X0[cluster];
-  auto Si_X0 = 9.5;
-  auto chipThickness = Layerx2X0 * Si_X0;
-  track.addMCSEffect(0.5 * Layerx2X0);
+  //track.addMCSEffect(0.5 * Layerx2X0);
 
-  if (mVerbose) {
-    std::cout << "   After MCS Effects I:" << std::endl
-              << track.getCovariances() << std::endl
-              << std::endl;
-  }
+  //if (mVerbose) {
+  //  std::cout << "   After MCS Effects I:" << std::endl
+  //            << track.getCovariances() << std::endl
+  //            << std::endl;
+  //}
 
   // recompute parameters
-  const std::array<float, 2> &pos = {clx, cly};
-  const std::array<float, 2> &cov = {sigmaX2, sigmaY2};
+  const std::array<Float_t, 2>& pos = {clx, cly};
+  const std::array<Float_t, 2>& cov = {sigmaX2, sigmaY2};
 
   if (track.update(pos, cov)) {
     if (mVerbose) {
@@ -218,12 +227,12 @@ bool TrackFitter::computeCluster(FT3Track &track, int cluster) {
                 << track.getCovariances() << std::endl
                 << std::endl;
     }
-    track.addMCSEffect(0.5 * Layerx2X0);
+    track.addMCSEffect(1.0 * Layerx2X0);
 
     if (mVerbose) {
       std::cout << "  After MCS Effects II:  mLayersx2X0[cluster] = " << Layerx2X0 << std::endl;
-      std::cout << " " << track.getCovariances() << std::endl << std::endl;
-
+      std::cout << " " << track.getCovariances() << std::endl
+                << std::endl;
     }
     return true;
   }
@@ -231,28 +240,29 @@ bool TrackFitter::computeCluster(FT3Track &track, int cluster) {
 }
 
 //_________________________________________________________________________________________________
-Double_t invQPtFromFCF(const FT3Track &track, Double_t bFieldZ,
-                       Double_t &sigmainvqptsq) {
+Double_t invQPtFromFCF(const FT3Track& track, Double_t bFieldZ,
+                       Double_t& sigmainvqptsq)
+{
 
-  auto &xPositions = track.getXCoordinates();
-  auto &yPositions = track.getYCoordinates();
-  auto &zPositions = track.getZCoordinates();
-  auto &SigmasX2 = track.getSigmasX2();
-  auto &SigmasY2 = track.getSigmasY2();
+  auto& xPositions = track.getXCoordinates();
+  auto& yPositions = track.getYCoordinates();
+  auto& zPositions = track.getZCoordinates();
+  auto& SigmasX2 = track.getSigmasX2();
+  auto& SigmasY2 = track.getSigmasY2();
 
   // Fast Circle Fit (Hansroul, Jeremie, Savard, 1987)
   auto nPoints = track.getNumberOfPoints();
-  Double_t *xVal = new Double_t[nPoints];
-  Double_t *yVal = new Double_t[nPoints];
-  Double_t *zVal = new Double_t[nPoints];
-  Double_t *xErr = new Double_t[nPoints];
-  Double_t *yErr = new Double_t[nPoints];
-  Double_t *uVal = new Double_t[nPoints - 1];
-  Double_t *vVal = new Double_t[nPoints - 1];
-  Double_t *vErr = new Double_t[nPoints - 1];
-  Double_t *fweight = new Double_t[nPoints - 1];
-  Double_t *Rn = new Double_t[nPoints - 1];
-  Double_t *Pn = new Double_t[nPoints - 1];
+  Double_t* xVal = new Double_t[nPoints];
+  Double_t* yVal = new Double_t[nPoints];
+  Double_t* zVal = new Double_t[nPoints];
+  Double_t* xErr = new Double_t[nPoints];
+  Double_t* yErr = new Double_t[nPoints];
+  Double_t* uVal = new Double_t[nPoints - 1];
+  Double_t* vVal = new Double_t[nPoints - 1];
+  Double_t* vErr = new Double_t[nPoints - 1];
+  Double_t* fweight = new Double_t[nPoints - 1];
+  Double_t* Rn = new Double_t[nPoints - 1];
+  Double_t* Pn = new Double_t[nPoints - 1];
   Double_t A, Aerr, B, Berr, x2, y2, invx2y2, a, b, r, sigmaRsq, u2, sigma;
   Double_t F0, F1, F2, F3, F4, SumSRn, SumSPn, SumRn, SumUPn, SumRP;
 
@@ -280,9 +290,9 @@ Double_t invQPtFromFCF(const FT3Track &track, Double_t bFieldZ,
     uVal[i] = xVal[i + 1] * invx2y2;
     vVal[i] = yVal[i + 1] * invx2y2;
     vErr[i] =
-        std::sqrt(8. * xErr[i + 1] * xErr[i + 1] * x2 * y2 +
-                  2. * yErr[i + 1] * yErr[i + 1] * (x2 - y2) * (x2 - y2)) *
-        invx2y2 * invx2y2;
+      std::sqrt(8. * xErr[i + 1] * xErr[i + 1] * x2 * y2 +
+                2. * yErr[i + 1] * yErr[i + 1] * (x2 - y2) * (x2 - y2)) *
+      invx2y2 * invx2y2;
     u2 = uVal[i] * uVal[i];
     fweight[i] = 1. / vErr[i];
     F0 += fweight[i];
@@ -346,7 +356,7 @@ Double_t invQPtFromFCF(const FT3Track &track, Double_t bFieldZ,
     Double_t alpha = 2.0 * std::abs(TMath::ATan2(rxRot, ryRot));
     Double_t x0 = xVal[0], y0 = yVal[0], z0 = zVal[0];
     Double_t dxyz2 =
-        (x - x0) * (x - x0) + (y - y0) * (y - y0) + (z - z0) * (z - z0);
+      (x - x0) * (x - x0) + (y - y0) * (y - y0) + (z - z0) * (z - z0);
     Double_t cst = 1000.;
     Double_t c_alpha = cst * alpha;
     Double_t p, pt, pz;
@@ -364,13 +374,13 @@ Double_t invQPtFromFCF(const FT3Track &track, Double_t bFieldZ,
     double sigmaAB = SumRP / (SumRn * SumUPn);
 
     double sigmaasq_FCF =
-        TMath::Abs(0.25 * invA2 * invA2 *
-                   (B * B * sigmaAsq + A * A * sigmaBsq - A * B * sigmaAB));
+      TMath::Abs(0.25 * invA2 * invA2 *
+                 (B * B * sigmaAsq + A * A * sigmaBsq - A * B * sigmaAB));
     double sigmabsq_FCF = TMath::Abs(0.25 * invA2 * invA2 * sigmaAsq);
     double sigma2R =
-        invR * invR *
-        (b * b * sigmaasq_FCF + a * a * sigmabsq_FCF +
-         2 * a * b * TMath::Sqrt(sigmaasq_FCF) * TMath::Sqrt(sigmabsq_FCF));
+      invR * invR *
+      (b * b * sigmaasq_FCF + a * a * sigmabsq_FCF +
+       2 * a * b * TMath::Sqrt(sigmaasq_FCF) * TMath::Sqrt(sigmabsq_FCF));
 
     sigmainvqptsq = sigma2R * invpt * invpt * invR * invR;
 
@@ -383,9 +393,10 @@ Double_t invQPtFromFCF(const FT3Track &track, Double_t bFieldZ,
 }
 
 ////_________________________________________________________________________________________________
-Bool_t LinearRegression(Int_t nVal, Double_t *xVal, Double_t *yVal,
-                        Double_t *yErr, Double_t &B, Double_t &Berr,
-                        Double_t &A, Double_t &Aerr) {
+Bool_t LinearRegression(Int_t nVal, Double_t* xVal, Double_t* yVal,
+                        Double_t* yErr, Double_t& B, Double_t& Berr,
+                        Double_t& A, Double_t& Aerr)
+{
   // linear regression y = B * x + A
 
   Double_t S1, SXY, SX, SY, SXX, SsXY, SsXX, SsYY, Xm, Ym, s, delta, difx;

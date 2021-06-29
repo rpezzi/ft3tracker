@@ -21,10 +21,7 @@
 
 #include "FAT/FWDFat.C"
 
-std::vector<float> getFATPtRes_pts_at_eta(std::vector<float> pts, float eta, float sigma);
-std::vector<float> getFATPtRes_etas_at_pt(std::vector<float> etas, float pt, float sigma);
-std::vector<float> getFATvtxXRes_etas_at_pt(std::vector<float> etas, float pt, float sigma);
-std::vector<float> getFATvtxXRes_pts_at_eta(std::vector<float> pts, float eta, float sigma);
+
 double etaWindow = 0.05;
 double ptWindow = 0.2;
 
@@ -297,50 +294,3 @@ void FT3HistoProfilerFat()
   CVertexResEta->BuildLegend();
 }
 
-//_________________________________________________________________________________________
-std::vector<float> getFATPtRes_pts_at_eta(std::vector<float> pts, float eta, float sigma)
-{
-  std::vector<float> ptResolutions;
-  for (auto pt : pts) {
-    auto ptres = FT3FATPtRes(pt, eta, sigma);
-    std::cout << "pt =  " << pt << " eta = " << eta << " ptRes = " << ptres << std::endl;
-    ptResolutions.push_back(ptres);
-  }
-  return ptResolutions;
-}
-
-//_________________________________________________________________________________________
-std::vector<float> getFATPtRes_etas_at_pt(std::vector<float> etas, float pt, float sigma)
-{
-  std::vector<float> ptResolutions;
-  for (auto eta : etas) {
-    auto ptres = FT3FATPtRes(pt, eta, sigma);
-    std::cout << "pt =  " << pt << " eta = " << eta << " ptRes = " << ptres << std::endl;
-    ptResolutions.push_back(ptres);
-  }
-  return ptResolutions;
-}
-
-//_________________________________________________________________________________________
-std::vector<float> getFATvtxXRes_etas_at_pt(std::vector<float> etas, float pt, float sigma)
-{
-  std::vector<float> vtxResolutions;
-  for (auto eta : etas) {
-    auto vtxRes = FT3FATvtxXRes(pt, eta, sigma);
-    std::cout << "pt =  " << pt << " eta = " << eta << " vtxRes = " << vtxRes << std::endl;
-    vtxResolutions.push_back(vtxRes);
-  }
-  return vtxResolutions;
-}
-
-//_________________________________________________________________________________________
-std::vector<float> getFATvtxXRes_pts_at_eta(std::vector<float> pts, float eta, float sigma)
-{
-  std::vector<float> vtxResolutions;
-  for (auto pt : pts) {
-    auto vtxRes = FT3FATvtxXRes(pt, eta, sigma);
-    std::cout << "pt =  " << pt << " eta = " << eta << " vtxRes = " << vtxRes << std::endl;
-    vtxResolutions.push_back(vtxRes);
-  }
-  return vtxResolutions;
-}

@@ -43,11 +43,11 @@ class TrackFitter
   TrackFitter(TrackFitter&&) = delete;
   TrackFitter& operator=(TrackFitter&&) = delete;
 
-  void setBz(float bZ);
+  void setBz(Double_t bZ);
 
   bool initTrack(FT3Track& track, bool outward = false);
   bool fit(FT3Track& track, bool outward = false);
-  void setLayersx2X0(std::vector<float_t> v) { mLayersx2X0 = v; }
+  void setLayersx2X0(std::vector<Double_t> v) { mLayersx2X0 = v; }
 
   /// Return the maximum chi2 above which the track can be considered as
   /// abnormal
@@ -57,13 +57,13 @@ class TrackFitter
  private:
   bool computeCluster(FT3Track& track, int cluster);
 
-  Float_t mBZField; // kiloGauss.
+  Double_t mBZField; // kiloGauss.
   static constexpr double SMaxChi2 =
     2.e10; ///< maximum chi2 above which the track can be considered as
            ///< abnormal
 
   bool mFieldON = true;
-  std::vector<float_t> mLayersx2X0;
+  std::vector<Double_t> mLayersx2X0;
 };
 
 // Functions to estimate momentum and charge from track curvature

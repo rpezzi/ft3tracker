@@ -16,8 +16,9 @@ class FwdFATProbe : public o2::track::TrackParCovFwd
   FwdFATProbe() = default;
   FwdFATProbe(const FwdFATProbe& t) = default;
   ~FwdFATProbe() = default;
-  void init(const Double_t phi0, const Double_t tanl0, const Double_t invqpt0, const Double_t lastZ, const Double_t zField)
+  void init(const Double_t phi0, const Double_t tanl0_, const Double_t invqpt0, const Double_t lastZ, const Double_t zField)
   {
+    Double_t tanl0 = std::copysign(tanl0_,lastZ); // Ensure tanl0 and lastZ are compatible
     mZField = zField;
     SMatrix5 parameters = {0, 0, phi0, tanl0, invqpt0};
     mStartingParameters.setParameters(parameters);
@@ -52,7 +53,7 @@ class FwdFATProbe : public o2::track::TrackParCovFwd
                 << "  *** UpdateFat Starting: currentZ = " << getZ() << " ; nextZ = " << nextZ << " ; Layerx2X0 = " << Layerx2X0 << " ; sigma = " << std::sqrt(sigma2) << std::endl;
       print();
     };
-    propagateToZhelix(nextZ, mZField);
+    propagateToZ(nextZ, mZField);
     if (mVerbose) {
       std::cout << "  UpdateFat After Propagation: " << std::endl;
       print();
@@ -83,7 +84,7 @@ class FwdFATProbe : public o2::track::TrackParCovFwd
   Double_t getVertexSigmaXResolution()
   {
     FwdFATProbe tempprobe(*this);
-    tempprobe.propagateToZ(mStartingParameters.getZ(), mZField);
+    tempprobe.propagateToZhelix(mStartingParameters.getZ(), mZField);
     return (1.0e4 * std::sqrt(tempprobe.getCovariances()(0, 0))); // microns
   }
 

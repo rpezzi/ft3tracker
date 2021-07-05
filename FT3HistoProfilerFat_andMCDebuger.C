@@ -25,7 +25,6 @@ double etaWindow = 0.1;
 double ptWindow = 0.2;
 
 //FAT configuration
-float sigma = 8.44e-4; //1e-6;//  8.44e-4
 float etamin = 3.8;
 float etamax = 2.6;
 int nEtaPoints = 10;
@@ -37,7 +36,7 @@ bool FAT_ENABLED = true;
 // Estimages pt and vertexing resolution from TH3 histograms produced by FT3TrackerChecker
 //
 //_________________________________________________________________________________________
-void FT3HistoProfilerFat_andMCDebuger()
+void FT3HistoProfilerFat_andMCDebuger(float sigma = 8.44e-4) // ; //1e-6;//  8.44e-4
 {
 
   gStyle->SetHistLineWidth(3);
@@ -76,9 +75,11 @@ void FT3HistoProfilerFat_andMCDebuger()
 
   TFile* chkFileIn = new TFile("Fittercheck_ft3tracks.root");
   TFile* debugFileIn = new TFile("fwdtrackdebugger.root");
+  TFile* profilerFileOut = new TFile("FT3Profiles.root","RECREATE");
+
 
   // FAT pt resolution vs. pt
-  auto CPtResInvPt = new TCanvas();
+  auto CPtResInvPt = new TCanvas("PtResVsPt", "PtResVsPt", 1080, 1080);
   TMultiGraph* ptResGraphs = new TMultiGraph("FT3PtRes", "FT3 q/Pt Resolution");
 
   for (auto eta : etaListFAT) {
@@ -94,6 +95,7 @@ void FT3HistoProfilerFat_andMCDebuger()
   ptResGraphs->Draw("A PLC");
 
   // FAT: no MCS
+  if(sigma > 1.e-4)
   for (auto eta : etaListFAT) {
 
     auto ptres = getFATPtRes_pts_at_eta(pts, eta, sigma, false);
@@ -131,6 +133,7 @@ void FT3HistoProfilerFat_andMCDebuger()
   auto FT3TrackInvQPtResolutionPtEtaDBG = (TH3F*)debugFileIn->Get("MoreHistos/FT3DBGTrackInvQPtResolutionPtEta");
   FT3TrackInvQPtResolutionPtEtaDBG->GetXaxis()->SetRange(0, 0);
   marker = kFullCircle;
+  if(sigma > 5.e-4)
   for (auto etamin : etaList) {
     auto etamax = etamin + etaWindow;
 
@@ -150,9 +153,11 @@ void FT3HistoProfilerFat_andMCDebuger()
   }
 
   CPtResInvPt->BuildLegend();
+  CPtResInvPt->Write();
+  CPtResInvPt->Print("PtResVsPt.png");
 
   // FAT pt resolution vs. eta
-  auto CPtResInvPtEta = new TCanvas();
+  auto CPtResInvPtEta = new TCanvas("PtResVsEta", "PtResVsEta", 1080, 1080);
   TMultiGraph* ptResGraphsEta = new TMultiGraph("FT3PtRes", "FT3 q/Pt Resolution");
 
   for (auto pt : ptListFAT) {
@@ -168,6 +173,7 @@ void FT3HistoProfilerFat_andMCDebuger()
   ptResGraphsEta->SetMinimum(0);
 
   // FAT: no MCS
+  if(sigma > 5.e-4)
   for (auto pt : ptListFAT) {
 
     auto ptres = getFATPtRes_etas_at_pt(etas, pt, sigma, false);
@@ -206,6 +212,7 @@ void FT3HistoProfilerFat_andMCDebuger()
   FT3TrackInvQPtResolutionPtEtaDBG->GetYaxis()->SetRange(0, 0);
 
   marker = kFullCircle;
+  if(sigma > 5.e-4)
   for (auto ptmin : ptList) {
     auto ptmax = ptmin + ptWindow;
 
@@ -227,7 +234,7 @@ void FT3HistoProfilerFat_andMCDebuger()
   { // FAT: Line at infinite sensor position resolution
     auto pt = 1.0;
 
-    auto ptres = getFATPtRes_etas_at_pt(etas, pt, 1e-7);
+    auto ptres = getFATPtRes_etas_at_pt(etas, pt, 1e-5);
     TGraph* ptResolution = new TGraph(etas.size(), &etas[0], &ptres[0]);
     ptResolution->SetTitle(Form("FAT: MCS only"));
     ptResolution->SetDrawOption("SAME");
@@ -238,6 +245,10 @@ void FT3HistoProfilerFat_andMCDebuger()
   CPtResInvPtEta->SetTicky();
   CPtResInvPtEta->SetGridy();
   CPtResInvPtEta->BuildLegend();
+  CPtResInvPtEta->Write();
+  CPtResInvPtEta->Print("PtResVsEta.png");
+  //profilerFileOut->Close();
+
   /*
   // FAT X vertexing resolution vs. eta
   auto CPtResVertEta = new TCanvas();

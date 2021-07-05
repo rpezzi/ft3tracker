@@ -195,8 +195,8 @@ bool TrackFitter::computeCluster(FT3Track& track, int cluster)
   }
 
   // Propagate track to the z position of the new cluster
-  //track.propagateToZhelix(clz, mBZField);
-  track.propagateToZ(clz, mBZField);
+  track.propagateToZhelix(clz, mBZField);
+  //track.propagateToZ(clz, mBZField);
 
   if (mVerbose) {
     std::cout << "   AfterExtrap: X = " << track.getX() << " Y = " << track.getY() << " Z = " << track.getZ() << " Tgl = " << track.getTanl() << "  Phi = " << track.getPhi() << " q/pt = " << track.getInvQPt() << std::endl;

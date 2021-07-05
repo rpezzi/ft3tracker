@@ -1,14 +1,118 @@
-#include "FwdFATProbe.h"
 #include <vector>
 #include <fstream>
+
+
+#ifndef O2_FWD_FAT_PROBE_H_
+#define O2_FWD_FAT_PROBE_H_
+
+#include <TMath.h>
+#include "ReconstructionDataFormats/TrackFwd.h"
+#include "Math/SMatrix.h"
+
+using SMatrix5 = ROOT::Math::SVector<Double_t, 5>;
+using SMatrix55Sym = ROOT::Math::SMatrix<double, 5, 5, ROOT::Math::MatRepSym<double, 5>>;
+using o2::track::TrackParCovFwd;
+
+class FwdFATProbe : public o2::track::TrackParCovFwd
+{
+ public:
+  FwdFATProbe() = default;
+  FwdFATProbe(const FwdFATProbe& t) = default;
+  ~FwdFATProbe() = default;
+  void init(const Double_t phi0, const Double_t tanl0_, const Double_t invqpt0, const Double_t lastZ, const Double_t zField)
+  {
+    Double_t tanl0 = std::copysign(tanl0_,lastZ); // Ensure tanl0 and lastZ are compatible
+    mZField = zField;    
+    SMatrix5 parameters = {0, 0, phi0, tanl0, invqpt0};
+    mStartingParameters.setParameters(parameters);
+    mStartingParameters.setZ(0.0);
+    //mStartingParameters.propagateParamToZhelix(lastZ,mZField);
+
+    setParameters(parameters);
+    setZ(0.0);
+    propagateParamToZhelix(lastZ, mZField);
+
+    SMatrix55Sym covariances;
+    Double_t qptsigma = TMath::Max((Double_t)std::abs(getInvQPt()), .5);
+    Double_t tanlsigma = TMath::Max((Double_t)std::abs(getTanl()), .5);
+
+    covariances(0, 0) = 1;                              // <X,X>
+    covariances(1, 1) = 1;                              // <Y,Y>
+    covariances(2, 2) = TMath::Pi() * TMath::Pi() / 16; // <PHI,PHI>
+    covariances(3, 3) = 10. * tanlsigma * tanlsigma;    // <TANL,TANL>
+    covariances(4, 4) = 10. * qptsigma * qptsigma;      // <INVQPT,INVQPT>
+    setCovariances(covariances);
+    if (mVerbose) {
+      std::cout << std::endl
+                << "  *** Init fwd FAT Probe: " << std::endl;
+      print();
+    }
+  }
+
+  void updateFAT(const Float_t nextZ, Float_t sigma2, Double_t Layerx2X0)
+  {
+    if (mVerbose) {
+      std::cout << std::endl
+                << "  *** UpdateFat Starting: currentZ = " << getZ() << " ; nextZ = " << nextZ << " ; Layerx2X0 = " << Layerx2X0 << " ; sigma = " << std::sqrt(sigma2) << std::endl;
+      print();
+    };
+    propagateToZ(nextZ, mZField);
+    if (mVerbose) {
+      std::cout << "  UpdateFat After Propagation: " << std::endl;
+      print();
+    }
+    const std::array<Float_t, 2>& pos = {(const Float_t)getX(), (const Float_t)getY()};
+    const std::array<Float_t, 2>& cov = {sigma2, sigma2};
+
+    update(pos, cov);
+    if (mVerbose) {
+      std::cout << "  UpdateFat After Kalman: " << std::endl;
+      print();
+    }
+
+    if (Layerx2X0 != 0) {
+      addMCSEffect(Layerx2X0);
+      if (mVerbose) {
+        std::cout << "  UpdateFat After MCS: " << std::endl;
+        print();
+      }
+    }
+  }
+
+  Double_t getInvQPtResolution()
+  {
+    return (std::sqrt(getCovariances()(4, 4)) * getPt());
+  }
+
+  Double_t getVertexSigmaXResolution()
+  {
+    FwdFATProbe tempprobe(*this);
+    tempprobe.propagateToZhelix(mStartingParameters.getZ(), mZField);
+    return (1.0e4 * std::sqrt(tempprobe.getCovariances()(0, 0))); // microns
+  }
+
+  void print()
+  {
+    std::cout << "  ProbeParams: X = " << getX() << " Y = " << getY() << " Z = " << getZ() << " Tgl = " << getTanl() << "  Phi = " << getPhi() << " q/pt = " << getInvQPt() << std::endl;
+    std::cout << "  Covariance: " << std::endl
+              << getCovariances() << std::endl
+              << std::endl;
+  }
+
+  bool mVerbose = false;
+  o2::track::TrackParFwd mStartingParameters;
+  Double_t mZField;
+};
+
+#endif /* O2_FWD_FAT_PROBE_H_ */
+
+
 
 std::vector<Float_t> zPositionsMFT{-45.3, -46.7, -48.6, -50.0, -52.4, -53.8, -67.7, -69.1, -76., -77.5};
 std::vector<Float_t> zPositionsFT3{-16., -20., -24., -77., -100., -122., -150., -180., -220., -279.};
 //std::vector<Float_t> x2X0FT3{0.001, 0.001, 0.001, 0.01, 0.01, 0.01, 0.01, 0.01, 0.01, 0.01};
 
 std::vector<Double_t> x2X0FT3;
-
-std::vector<Double_t> loadx2X0fromFile(std::string configFileName);
 
 
 
@@ -130,7 +234,7 @@ float FT3FATPtRes(float pt, float eta, float sigma = 8.44e-4, bool enableMCS = t
   Float_t phi0 = 1;
   float sigma2 = sigma * sigma;
   if (!x2X0FT3.size()) {
-      x2X0FT3 = loadx2X0fromFile("FT3_layout.cfg");
+      x2X0FT3 = {0.001, 0.001, 0.001, 0.01, 0.01, 0.01, 0.01, 0.01, 0.01, 0.01};
   }
 
   FwdFATProbe probe;
@@ -167,7 +271,7 @@ float FT3FATvtxXRes(float pt, float eta, float sigma = 8.44e-4, float zField = 5
   Float_t phi0 = 0;
   float sigma2 = sigma * sigma;
     if (!x2X0FT3.size()) {
-      x2X0FT3 = loadx2X0fromFile("FT3_layout.cfg");
+      x2X0FT3 = {0.001, 0.001, 0.001, 0.01, 0.01, 0.01, 0.01, 0.01, 0.01, 0.01};
   }
 
   FwdFATProbe probe;
@@ -198,13 +302,13 @@ float FT3FATvtxXRes(float pt, float eta, float sigma = 8.44e-4, float zField = 5
 void checkFT3FATPtRes(float pt, float eta, float sigma = 8.44e-4, float zField = 5.0, bool verbose = false)
 {
   auto ptres_noMCS = FT3FATPtRes(pt, eta, sigma, false, zField, verbose);
-  //auto ptres_onlyMCS = FT3FATPtRes(pt, eta, 1e-5, true, zField, verbose);
-  //auto ptres_combined = sqrt(ptres_noMCS * ptres_noMCS + ptres_onlyMCS * ptres_onlyMCS);
-  //auto ptres_FAT = FT3FATPtRes(pt, eta, sigma, true, zField, verbose);
+  auto ptres_onlyMCS = FT3FATPtRes(pt, eta, 1e-5, true, zField, verbose);
+  auto ptres_combined = sqrt(ptres_noMCS * ptres_noMCS + ptres_onlyMCS * ptres_onlyMCS);
+  auto ptres_FAT = FT3FATPtRes(pt, eta, sigma, true, zField, verbose);
   std::cout << " ptres_noMCS = " << ptres_noMCS << std::endl;
-  //std::cout << " ptres_onlyMCS = " << ptres_onlyMCS << std::endl;
-  //std::cout << " ptres_combined = " << ptres_combined << std::endl;
-  //std::cout << " ptres_FAT = " << ptres_FAT << std::endl;
+  std::cout << " ptres_onlyMCS = " << ptres_onlyMCS << std::endl;
+  std::cout << " ptres_combined = " << ptres_combined << std::endl;
+  std::cout << " ptres_FAT = " << ptres_FAT << std::endl;
   return;
 }
 
@@ -218,36 +322,6 @@ void checkFT3FATPtResCSV(float pt, float eta, float sigma = 8.44e-4, float zFiel
   std::cout <<  pt  << " ; " <<  eta  << " ; " <<  ptres_noMCS  << " ; " <<  ptres_onlyMCS  << " ; " <<  ptres_combined  << " ; " <<  ptres_FAT  << std::endl;
 
   return;
-}
-
-std::vector<Double_t> loadx2X0fromFile(std::string configFileName = "FT3_layout.cfg")
-{
-  std::vector<Double_t> Layersx2X0;
-  std::ifstream ifs(configFileName.c_str());
-  if (!ifs.good()) {
-    std::cout  << " Invalid FT3Base.configFile!" << std::endl;
-    exit(-1);
-  }
-  std::string tempstr;
-  Double_t z_layer, r_in, r_out, Layerx2X0;
-  char delimiter;
-  int layerNumber = 0;
-  while (std::getline(ifs, tempstr)) {
-    if (tempstr[0] == '#') {
-      std::cout << " Comment: " << tempstr << std::endl;
-      continue;
-    }
-    std::cout  << " Line: " << tempstr << std::endl;
-    std::istringstream iss(tempstr);
-    iss >> z_layer;
-    iss >> r_in;
-    iss >> r_out;
-    iss >> Layerx2X0;
-
-    Layersx2X0.push_back(Layerx2X0);
-    std::cout  << " loadx2X0fromFile z =  " << z_layer << " ; x/X0 = " << Layerx2X0 << std::endl << std::endl;
-  }
-  return Layersx2X0;
 }
 
 
@@ -302,10 +376,18 @@ std::vector<float> getFATvtxXRes_pts_at_eta(std::vector<float> pts, float eta, f
 
 
 
-void FWDFat() {
-//for (auto eta : {0.2, 0.6, 0.8, 1.0, 1.2, 1.4, 1.6, 1.8, 2.2, 2.4, 2.8, 3.0, 3.4, 3.6}) { 
-//  checkFT3FATPtResCSV(9.1,-eta);
-//  }
+void FWDFat_debug() {
+float pt = 1.0055; 
+float eta = 0.6;
+float sigma = 8.44e-4; 
+bool enableMCS = false; 
+float field = 5.0; 
+bool verbose = true;
 
-
+float ptres;
+ptres = FT3FATPtRes(pt, eta, sigma, enableMCS, field, verbose);
+std::cout << "FT3 FAT Pt Resolution without MCS for pt = " << pt << " ;  eta = " << eta << " ; sigma = " << sigma << " ==> " << ptres << std::endl;
+eta = -eta;
+ptres = FT3FATPtRes(pt, eta, sigma, enableMCS, field, verbose);
+std::cout << "FT3 FAT Pt Resolution without MCS for pt = " << pt << " ;  eta = " << eta << " ; sigma = " << sigma << " ==> " << ptres << std::endl;
 }

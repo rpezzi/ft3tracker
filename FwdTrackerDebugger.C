@@ -62,7 +62,6 @@ void FwdTrackerDebugger(size_t nTracks = 1000,
                         float pixelPitch_ = 0.003, // o2::itsmft::SegmentationAlpide::PitchCol = 0.00292400f
                         const char* treeFile = "fwdtrackdebugger.root")
 {
-
   pixelPitch = pixelPitch_;
   clSigma = clSigma_;
   enableClusterSmearing = enableClusterSmearing_;
@@ -73,7 +72,7 @@ void FwdTrackerDebugger(size_t nTracks = 1000,
   Double_t etaMax = -0.85;
   auto ptmincut = 0.0001;
   fitter.setBz(zField);
-  fitter.setLayersx2X0(std::vector<float>(10,0.0)); // Disable MCS effects
+  fitter.setLayersx2X0(std::vector<double>(10, 0.0)); // Disable MCS effects
   fitter.mVerbose = DEBUG_fitter;
   //fitter.setTrackModel(o2::mft::MFTTrackModel::Helix);
   //fitter.setTrackModel(o2::mft::MFTTrackModel::Quadratic);
@@ -183,6 +182,8 @@ void simFwdTracks(size_t nTracks, float ptMinCut, float ptMax, float etaMin, flo
     MCTrack.setX(0);
     MCTrack.setY(0);
     MCTrack.setPhi(rnd.Uniform(-TMath::Pi(), TMath::Pi()));
+    //MCTrack.setPhi(TMath::Pi() / 4);
+
     auto eta = rnd.Uniform(etaMin, etaMax);
 
     MCTrack.setTanl(EtaToTanl(eta));
@@ -205,15 +206,20 @@ void simFwdTracks(size_t nTracks, float ptMinCut, float ptMax, float etaMin, flo
     int nLayer = 0;
     for (auto z : zPositionsVec) {
       MCTrack.propagateParamToZhelix(z, zField);
+      //std::cout << " AddHit: MCTrack.getX() = " << MCTrack.getX() << " ; MCTrack.getY() =  " << MCTrack.getY() << "  MCTrack.getZ() = " << MCTrack.getZ() << std::endl;
+
       o2::itsmft::Hit hit(0, 0, {MCTrack.getX(), MCTrack.getY(), MCTrack.getZ()}, {0, 0, 0}, {0, 0, 0}, 0, 0, 0, 0, 0);
       ft3ProbeTr.addHit(hit, nLayer, clSigma);
       nLayer++;
     }
+    //std::cout << std::endl;
     if (DEBUG_VERBOSE)
-      std::cout << std::endl;
+      // std::cout << std::endl;
     ft3ProbeTr.sort();
-    fitter.initTrack(ft3ProbeTr);
+
+    fitter.initTrack(ft3ProbeTr, true);
     setSeedCovariances(ft3ProbeTr);
+    //fitter.MinuitFit(ft3ProbeTr); 
     fitter.fit(ft3ProbeTr);
     if (DEBUG_qpt)
       std::cout << "Track " << i << ": \n    q/pt_MC = " << MCTrack.getInvQPt() << "\n    q/pt_Seed = " << ft3ProbeTr.getInvQPtSeed() << "\n    q/pt_fit = " << ft3ProbeTr.getInvQPt() << std::endl;

@@ -11,13 +11,15 @@ using o2::itsmft::Hit;
 using SMatrix55Sym = ROOT::Math::SMatrix<double, 5, 5, ROOT::Math::MatRepSym<double, 5>>;
 
 bool DEBUG_VERBOSE = true;
+auto PrintTracksTotal = 10;
 //std::vector<Double_t> layersX2X0 = {};
 
 std::vector<Double_t> loadx2X0fromFile(std::string configFileName);
 void setSeedCovariances(FT3Track& track);
 
-void ft3Tracker(Double_t clResolution = 8.44e-4) // clResolution = 8.44e-4
+void ft3Tracker(Double_t clResolution = 8.44e-4, bool verbose = false) // clResolution = 8.44e-4
 {
+  DEBUG_VERBOSE = verbose;
 
   o2::ft3::TrackFitter fitter;
   fitter.mVerbose = DEBUG_VERBOSE;
@@ -90,7 +92,7 @@ void ft3Tracker(Double_t clResolution = 8.44e-4) // clResolution = 8.44e-4
         recoTracks->emplace_back(track);
         recoTrackIDs->emplace_back(trackID);
         if (fitter.mVerbose) {
-          if (nPrintTracks > 10)
+          if (nPrintTracks > PrintTracksTotal)
             fitter.mVerbose = false;
         }
       }

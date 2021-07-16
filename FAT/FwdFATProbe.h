@@ -53,7 +53,7 @@ class FwdFATProbe : public o2::track::TrackParCovFwd
                 << "  *** UpdateFat Starting: currentZ = " << getZ() << " ; nextZ = " << nextZ << " ; Layerx2X0 = " << Layerx2X0 << " ; sigma = " << std::sqrt(sigma2) << std::endl;
       print();
     };
-    propagateToZ(nextZ, mZField);
+    propagateToZhelix(nextZ, mZField);
     if (mVerbose) {
       std::cout << "  UpdateFat After Propagation: " << std::endl;
       print();

@@ -94,6 +94,9 @@ bool TrackFitter::initTrack(FT3Track& track, bool outward)
 {
 
   // initialize the starting track parameters
+  double x0;
+  double y0;
+  double z0;
   double sigmainvQPtsq;
   double chi2invqptquad = 0;
   auto invQPt0 = invQPtFromFCF(track, mBZField, sigmainvQPtsq);
@@ -107,19 +110,20 @@ bool TrackFitter::initTrack(FT3Track& track, bool outward)
   track.setInvQPt(invQPt0);
 
   /// Compute the initial track parameters to seed the Kalman filter
-
   int first_cls, last_cls;
   if (outward) { // MCH matching
     first_cls = 0;
-    last_cls = nPoints - 1;
+    last_cls = 1;
+    x0 = track.getXCoordinates()[0];
+    y0 = track.getYCoordinates()[0];
+    z0 = track.getZCoordinates()[0];
   } else { // Vertexing
-    first_cls = nPoints - 1;
-    last_cls = nPoints - 2;
+    x0 = track.getXCoordinates()[nPoints - 1];
+    y0 = track.getYCoordinates()[nPoints - 1];
+    z0 = track.getZCoordinates()[nPoints - 1];
+    first_cls = nPoints - 2;
+    last_cls = nPoints - 1;
   }
-
-  auto x0 = track.getXCoordinates()[first_cls];
-  auto y0 = track.getYCoordinates()[first_cls];
-  auto z0 = track.getZCoordinates()[first_cls];
 
   //Compute tanl using first two clusters
   auto deltaX = track.getXCoordinates()[1] - track.getXCoordinates()[0];
@@ -130,24 +134,20 @@ bool TrackFitter::initTrack(FT3Track& track, bool outward)
                TMath::Sqrt(TMath::Sqrt((invQPt0 * deltaR * k) * (invQPt0 * deltaR * k) + 1) + 1);
 
   // Compute phi at the last cluster using two last clusters
-  deltaX = track.getXCoordinates()[first_cls] - track.getXCoordinates()[last_cls];
-  deltaY = track.getYCoordinates()[first_cls] - track.getYCoordinates()[last_cls];
-  deltaZ = track.getZCoordinates()[first_cls] - track.getZCoordinates()[last_cls];
+  deltaX = track.getXCoordinates()[last_cls] - track.getXCoordinates()[first_cls];
+  deltaY = track.getYCoordinates()[last_cls] - track.getYCoordinates()[first_cls];
+  deltaZ = track.getZCoordinates()[last_cls] - track.getZCoordinates()[first_cls];
   deltaR = TMath::Sqrt(deltaX * deltaX + deltaY * deltaY);
   auto phi0 = TMath::ATan2(deltaY, deltaX) - 0.5 * Hz * invQPt0 * deltaZ * k / tanl0;
-  auto sigmax0sq = track.getSigmasX2()[first_cls];
-  auto sigmay0sq = track.getSigmasY2()[first_cls];
-  auto sigmax1sq = track.getSigmasX2()[last_cls];
-  auto sigmay1sq = track.getSigmasY2()[last_cls];
-  auto sigmaDeltaXsq = sigmax0sq + sigmax1sq;
-  auto sigmaDeltaYsq = sigmay0sq + sigmay1sq;
 
   track.setX(x0);
   track.setY(y0);
   track.setZ(z0);
   track.setPhi(phi0);
   track.setTanl(tanl0);
-
+  if (mVerbose) {
+    std::cout << "  Init track: X = " << track.getX() << " Y = " << track.getY() << " Z = " << track.getZ() << " Tgl = " << track.getTanl() << "  Phi = " << track.getPhi() << "  (" << o2::math_utils::toPMPiGen(track.getPhi()) << ") q/pt = " << track.getInvQPt() << std::endl;
+  }
   SMatrix55Sym lastParamCov;
   Double_t qptsigma = TMath::Max(std::abs(track.getInvQPt()), .5);
   Double_t tanlsigma = TMath::Max(std::abs(track.getTanl()), .5);
@@ -202,6 +202,7 @@ bool TrackFitter::computeCluster(FT3Track& track, int cluster)
     std::cout << "   AfterExtrap: X = " << track.getX() << " Y = " << track.getY() << " Z = " << track.getZ() << " Tgl = " << track.getTanl() << "  Phi = " << track.getPhi() << " q/pt = " << track.getInvQPt() << std::endl;
     std::cout << " Track covariances after extrap: \n"
               << track.getCovariances() << std::endl
+              << ((track.getCovariances()(4, 4) < 0.) ? " NEGATIVE q/Pt VARIANCE!" : "")
               << std::endl;
   }
 
@@ -237,6 +238,109 @@ bool TrackFitter::computeCluster(FT3Track& track, int cluster)
     return true;
   }
   return false;
+}
+
+//_________________________________________________________________________________________________
+void TrackFitter::MinuitFit(FT3Track& track)
+{
+  //std::ofstream log("MinuitFitter_Log");
+  initTrack(track, 1);
+
+  TrackFitter::PosX = track.getXCoordinates();
+  TrackFitter::PosY = track.getYCoordinates();
+  TrackFitter::PosZ = track.getZCoordinates();
+  TrackFitter::ErrorsX = track.getSigmasX2();
+  TrackFitter::ErrorsY = track.getSigmasY2();
+
+  //log << " Track Coordinates: "<<std::endl;
+  //log << " X = {"<< TrackFitter::PosX[0] << ", " <<TrackFitter::PosX[1] << ", " <<TrackFitter::PosX[2] << ", " <<TrackFitter::PosX[3] << ", " << TrackFitter::PosX[4] << "}" << std::endl;
+  //log << " Y = {"<< TrackFitter::PosY[0] << ", " <<TrackFitter::PosY[1] << ", " <<TrackFitter::PosY[2] << ", " <<TrackFitter::PosY[3] << ", " << TrackFitter::PosY[4] << "}" << std::endl;
+  //log << " Z = {"<< TrackFitter::PosZ[0] << ", " <<TrackFitter::PosZ[1] << ", " <<TrackFitter::PosZ[2] << ", " <<TrackFitter::PosZ[3] << ", " << TrackFitter::PosZ[4] << "}" << std::endl;
+
+  TVirtualFitter::SetDefaultFitter("Minuit");
+  TVirtualFitter* minuit = TVirtualFitter::Fitter(0, 5);
+  minuit->SetParameter(0, "X", track.getX(), 8.44e-4, -30, 30);
+  minuit->SetParameter(1, "Y", track.getY(), 8.44e-4, -40, 40);
+  minuit->SetParameter(2, "Phi", track.getPhi(), 0.0001, 0, 0);
+  minuit->SetParameter(3, "Tanl", track.getTanl(), 0.0001, 0, 0);
+  minuit->SetParameter(4, "invQPt", track.getInvQPt(), 0.0001, 0, 0);
+
+  minuit->SetFCN(myFitFcn);
+
+  //log << "\n\n Beginning Minuit Fit with initial parameters: \n";
+  //for (int i = 0; i <= 4; ++i) {
+  //log << minuit->GetParName(i) << " = " << minuit->GetParameter(i)<<std::endl;
+  //}
+
+  double arglist[100];
+  arglist[0] = 0;
+  // set print level
+  minuit->ExecuteCommand("SET PRINT", arglist, 2);
+
+  //eu posso simplesmente buscar os parametors e imprimir de novo
+
+  // minimize
+  arglist[0] = 10000; // number of function calls
+  arglist[1] = 0.001; // tolerance
+  minuit->ExecuteCommand("MIGRAD", arglist, 2);
+
+  //log << "\n\n/************** Minuit Fit *************/  " << std::endl;
+
+  //for (int i = 0; i <= 4; ++i) {
+  //log << minuit->GetParName(i) << " = " << minuit->GetParameter(i) << " +/- " << minuit->GetParError(i)<<std::endl;
+  //}
+
+  track.setX(minuit->GetParameter(0));
+  track.setY(minuit->GetParameter(1));
+  track.setPhi(minuit->GetParameter(2));
+  track.setTanl(minuit->GetParameter(3));
+  track.setInvQPt(minuit->GetParameter(4));
+
+  SMatrix55Sym mCovariances{};
+  mCovariances(0, 0) = minuit->GetParError(0);
+  mCovariances(1, 1) = minuit->GetParError(1);
+  mCovariances(2, 2) = minuit->GetParError(2);
+  mCovariances(3, 3) = minuit->GetParError(3);
+  mCovariances(4, 4) = minuit->GetParError(4);
+  track.setCovariances(mCovariances);
+  //  initTrack(track,0);
+  //  fit(track);
+
+  //  log << " Kalman: " << std::endl;
+  //  log << " X coord = " << track.getX() << " Y coord= " << track.getY() << " Z coord= " << track.getZ() << "Phi = " << track.getPhi() << "  Tanl= " << track.getTanl() << " InQPt =  " << track.getInvQPt() << "\n"
+  //<< std::endl;
+}
+
+//_________________________________________________________________________________________________
+void myFitFcn(Int_t&, Double_t*, Double_t& fval, Double_t* p, Int_t)
+{
+  double chi2 = 0;
+  double tmp;
+
+  //   o2::track::TrackParFwd tempTrack;
+  FT3Track tempTrack;
+  auto fieldZ = -5.; //mBZField;
+  auto zPositionsMFT = TrackFitter::PosZ;
+
+  //std::cout<< " z position " << zPositionsMFT[0] <<std::endl; exit(1);
+  tempTrack.setZ(zPositionsMFT[0]);
+  tempTrack.setX(p[0]);
+  tempTrack.setY(p[1]);
+  tempTrack.setPhi(p[2]);
+  tempTrack.setTanl(p[3]);
+  tempTrack.setInvQPt(p[4]);
+  auto i = 0;
+
+  for (auto z : zPositionsMFT) {
+    // Propagate to Z
+    tempTrack.propagateParamToZhelix(z, fieldZ);
+    tmp = (TrackFitter::PosX[i] - tempTrack.getX()) / TrackFitter::ErrorsX[i];
+    chi2 += tmp * tmp;
+    tmp = (TrackFitter::PosY[i] - tempTrack.getY()) / TrackFitter::ErrorsY[i];
+    chi2 += tmp * tmp;
+    i++;
+  }
+  fval = chi2;
 }
 
 //_________________________________________________________________________________________________

@@ -75,8 +75,7 @@ void FT3HistoProfilerFat_andMCDebuger(float sigma = 8.44e-4) // ; //1e-6;//  8.4
 
   TFile* chkFileIn = new TFile("Fittercheck_ft3tracks.root");
   TFile* debugFileIn = new TFile("fwdtrackdebugger.root");
-  TFile* profilerFileOut = new TFile("FT3Profiles.root","RECREATE");
-
+  TFile* profilerFileOut = new TFile("FT3Profiles.root", "RECREATE");
 
   // FAT pt resolution vs. pt
   auto CPtResInvPt = new TCanvas("PtResVsPt", "PtResVsPt", 1080, 1080);
@@ -95,16 +94,16 @@ void FT3HistoProfilerFat_andMCDebuger(float sigma = 8.44e-4) // ; //1e-6;//  8.4
   ptResGraphs->Draw("A PLC");
 
   // FAT: no MCS
-  if(sigma > 1.e-4)
-  for (auto eta : etaListFAT) {
+  if (sigma > 1.e-4)
+    for (auto eta : etaListFAT) {
 
-    auto ptres = getFATPtRes_pts_at_eta(pts, eta, sigma, false);
-    TGraph* ptResolution = new TGraph(pts.size(), &pts[0], &ptres[0]);
-    ptResolution->SetTitle(Form("\\text{FAT: } \\eta = %1.3f \\text{ (w.o. MCS)}", eta));
-    ptResolution->SetDrawOption("A SAME PMC");
-    ptResolution->SetLineStyle(kDashed);
-    ptResGraphs->Add(ptResolution);
-  }
+      auto ptres = getFATPtRes_pts_at_eta(pts, eta, sigma, false);
+      TGraph* ptResolution = new TGraph(pts.size(), &pts[0], &ptres[0]);
+      ptResolution->SetTitle(Form("\\text{FAT: } \\eta = %1.3f \\text{ (w.o. MCS)}", eta));
+      ptResolution->SetDrawOption("A SAME PMC");
+      ptResolution->SetLineStyle(kDashed);
+      ptResGraphs->Add(ptResolution);
+    }
 
   // InvPtResolution vs pt full simulation
   auto FT3TrackInvQPtResolutionPtEta = (TH3F*)chkFileIn->Get("MoreHistos/FT3TrackInvQPtResolutionPtEta");
@@ -133,26 +132,28 @@ void FT3HistoProfilerFat_andMCDebuger(float sigma = 8.44e-4) // ; //1e-6;//  8.4
   auto FT3TrackInvQPtResolutionPtEtaDBG = (TH3F*)debugFileIn->Get("MoreHistos/FT3DBGTrackInvQPtResolutionPtEta");
   FT3TrackInvQPtResolutionPtEtaDBG->GetXaxis()->SetRange(0, 0);
   marker = kFullCircle;
-  if(sigma > 5.e-4)
-  for (auto etamin : etaList) {
-    auto etamax = etamin + etaWindow;
+  if (sigma > 5.e-4)
+    for (auto etamin : etaList) {
+      auto etamax = etamin + etaWindow;
 
-    FT3TrackInvQPtResolutionPtEtaDBG->GetYaxis()->SetRangeUser(etamin, etamax);
+      FT3TrackInvQPtResolutionPtEtaDBG->GetYaxis()->SetRangeUser(etamin, etamax);
 
-    auto title = Form("__%1.2f_%1.2f_xz", etamin, etamax);
-    auto aDBG = (TH2F*)FT3TrackInvQPtResolutionPtEtaDBG->Project3D(title);
-    aDBG->GetXaxis()->SetRange(0, 0);
+      auto title = Form("__%1.2f_%1.2f_xz", etamin, etamax);
+      auto aDBG = (TH2F*)FT3TrackInvQPtResolutionPtEtaDBG->Project3D(title);
+      aDBG->GetXaxis()->SetRange(0, 0);
 
-    aDBG->FitSlicesX(0, 0, -1, 1);
-    auto th2InvPtResolutionEtaDBG = (TH1F*)gDirectory->Get((std::string(aDBG->GetName()) + std::string("_2")).c_str());
-    th2InvPtResolutionEtaDBG->SetTitle(Form("\\text{MC_DBG: }%1.2f < \\eta < %1.2f \\text{ (w.o.MCS)}", etamin, etamax));
-    th2InvPtResolutionEtaDBG->SetMarkerStyle(marker++);
-    th2InvPtResolutionEtaDBG->SetLineStyle(kDashed);
-    th2InvPtResolutionEtaDBG->SetStats(0);
-    th2InvPtResolutionEtaDBG->Draw("PLC PMC same");
-  }
+      aDBG->FitSlicesX(0, 0, -1, 1);
+      auto th2InvPtResolutionEtaDBG = (TH1F*)gDirectory->Get((std::string(aDBG->GetName()) + std::string("_2")).c_str());
+      th2InvPtResolutionEtaDBG->SetTitle(Form("\\text{MC_DBG: }%1.2f < \\eta < %1.2f \\text{ (w.o.MCS)}", etamin, etamax));
+      th2InvPtResolutionEtaDBG->SetMarkerStyle(marker++);
+      th2InvPtResolutionEtaDBG->SetLineStyle(kDashed);
+      th2InvPtResolutionEtaDBG->SetStats(0);
+      th2InvPtResolutionEtaDBG->Draw("PLC PMC same");
+    }
 
   CPtResInvPt->BuildLegend();
+  CPtResInvPt->SetTicky();
+  CPtResInvPt->SetGridy();
   CPtResInvPt->Write();
   CPtResInvPt->Print("PtResVsPt.png");
 
@@ -173,16 +174,16 @@ void FT3HistoProfilerFat_andMCDebuger(float sigma = 8.44e-4) // ; //1e-6;//  8.4
   ptResGraphsEta->SetMinimum(0);
 
   // FAT: no MCS
-  if(sigma > 5.e-4)
-  for (auto pt : ptListFAT) {
+  if (sigma > 5.e-4)
+    for (auto pt : ptListFAT) {
 
-    auto ptres = getFATPtRes_etas_at_pt(etas, pt, sigma, false);
-    TGraph* ptResolution = new TGraph(etas.size(), &etas[0], &ptres[0]);
-    ptResolution->SetTitle(Form("\\text{FAT: } p_t = %1.2f (w.o. MCS)", pt));
-    ptResolution->SetDrawOption("A SAME PMC");
-    ptResolution->SetLineStyle(kDashed);
-    ptResGraphsEta->Add(ptResolution);
-  }
+      auto ptres = getFATPtRes_etas_at_pt(etas, pt, sigma, false);
+      TGraph* ptResolution = new TGraph(etas.size(), &etas[0], &ptres[0]);
+      ptResolution->SetTitle(Form("\\text{FAT: } p_t = %1.2f (w.o. MCS)", pt));
+      ptResolution->SetDrawOption("A SAME PMC");
+      ptResolution->SetLineStyle(kDashed);
+      ptResGraphsEta->Add(ptResolution);
+    }
 
   // InvPtResolution vs eta Full Simulation
   FT3TrackInvQPtResolutionPtEta = (TH3F*)chkFileIn->Get("MoreHistos/FT3TrackInvQPtResolutionPtEta");
@@ -212,24 +213,24 @@ void FT3HistoProfilerFat_andMCDebuger(float sigma = 8.44e-4) // ; //1e-6;//  8.4
   FT3TrackInvQPtResolutionPtEtaDBG->GetYaxis()->SetRange(0, 0);
 
   marker = kFullCircle;
-  if(sigma > 5.e-4)
-  for (auto ptmin : ptList) {
-    auto ptmax = ptmin + ptWindow;
+  if (sigma > 5.e-4)
+    for (auto ptmin : ptList) {
+      auto ptmax = ptmin + ptWindow;
 
-    FT3TrackInvQPtResolutionPtEtaDBG->GetXaxis()->SetRangeUser(ptmin, ptmax);
+      FT3TrackInvQPtResolutionPtEtaDBG->GetXaxis()->SetRangeUser(ptmin, ptmax);
 
-    auto title = Form("_%1.2f_%1.2f_yz", ptmin, ptmax);
-    auto aDBG = (TH2F*)FT3TrackInvQPtResolutionPtEtaDBG->Project3D(title);
-    aDBG->GetXaxis()->SetRangeUser(0, 0);
+      auto title = Form("_%1.2f_%1.2f_yz", ptmin, ptmax);
+      auto aDBG = (TH2F*)FT3TrackInvQPtResolutionPtEtaDBG->Project3D(title);
+      aDBG->GetXaxis()->SetRangeUser(0, 0);
 
-    aDBG->FitSlicesX(0, 0, -1, 1);
-    auto th2InvPtResolutionEtaDBG = (TH1F*)gDirectory->Get((std::string(aDBG->GetName()) + std::string("_2")).c_str());
-    th2InvPtResolutionEtaDBG->SetTitle(Form("MC_DBG: %1.2f < p_t < %1.2f (w.o.MCS)", ptmin, ptmax));
-    th2InvPtResolutionEtaDBG->SetMarkerStyle(marker++);
-    th2InvPtResolutionEtaDBG->SetLineStyle(kDashed);
-    th2InvPtResolutionEtaDBG->SetStats(0);
-    th2InvPtResolutionEtaDBG->Draw("PLC PMC same");
-  }
+      aDBG->FitSlicesX(0, 0, -1, 1);
+      auto th2InvPtResolutionEtaDBG = (TH1F*)gDirectory->Get((std::string(aDBG->GetName()) + std::string("_2")).c_str());
+      th2InvPtResolutionEtaDBG->SetTitle(Form("MC_DBG: %1.2f < p_t < %1.2f (w.o.MCS)", ptmin, ptmax));
+      th2InvPtResolutionEtaDBG->SetMarkerStyle(marker++);
+      th2InvPtResolutionEtaDBG->SetLineStyle(kDashed);
+      th2InvPtResolutionEtaDBG->SetStats(0);
+      th2InvPtResolutionEtaDBG->Draw("PLC PMC same");
+    }
 
   { // FAT: Line at infinite sensor position resolution
     auto pt = 1.0;

@@ -47,12 +47,20 @@ class TrackFitter
 
   bool initTrack(FT3Track& track, bool outward = false);
   bool fit(FT3Track& track, bool outward = false);
+  void MinuitFit(FT3Track& track);
   void setLayersx2X0(std::vector<Double_t> v) { mLayersx2X0 = v; }
 
   /// Return the maximum chi2 above which the track can be considered as
   /// abnormal
   static constexpr double getMaxChi2() { return SMaxChi2; }
   bool mVerbose = false;
+
+  //Vectors for Minuit Fitter
+  static std::vector<float, std::allocator<float>> PosX;
+  static std::vector<float, std::allocator<float>> PosY;
+  static std::vector<float, std::allocator<float>> PosZ;
+  static std::vector<float, std::allocator<float>> ErrorsX;
+  static std::vector<float, std::allocator<float>> ErrorsY;
 
  private:
   bool computeCluster(FT3Track& track, int cluster);
@@ -71,6 +79,14 @@ Double_t invQPtFromFCF(const FT3Track& track, Double_t bFieldZ, Double_t& chi2);
 Bool_t LinearRegression(Int_t nVal, Double_t* xVal, Double_t* yVal,
                         Double_t* yErr, Double_t& a, Double_t& ae, Double_t& b,
                         Double_t& be);
+
+// Function used by Minuit Fitter and vector declarations
+void myFitFcn(Int_t&, Double_t*, Double_t& fval, Double_t* p, Int_t);
+std::vector<float, std::allocator<float>> TrackFitter::PosX;
+std::vector<float, std::allocator<float>> TrackFitter::PosY;
+std::vector<float, std::allocator<float>> TrackFitter::PosZ;
+std::vector<float, std::allocator<float>> TrackFitter::ErrorsX;
+std::vector<float, std::allocator<float>> TrackFitter::ErrorsY;
 
 } // namespace ft3
 } // namespace o2

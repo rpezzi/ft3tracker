@@ -273,11 +273,9 @@ void TrackFitter::MinuitFit(FT3Track& track)
   //}
 
   double arglist[100];
-  arglist[0] = 0;
+  arglist[0] = 1;
   // set print level
   minuit->ExecuteCommand("SET PRINT", arglist, 2);
-
-  //eu posso simplesmente buscar os parametors e imprimir de novo
 
   // minimize
   arglist[0] = 10000; // number of function calls
@@ -334,10 +332,10 @@ void myFitFcn(Int_t&, Double_t*, Double_t& fval, Double_t* p, Int_t)
   for (auto z : zPositionsMFT) {
     // Propagate to Z
     tempTrack.propagateParamToZhelix(z, fieldZ);
-    tmp = (TrackFitter::PosX[i] - tempTrack.getX()) / TrackFitter::ErrorsX[i];
-    chi2 += tmp * tmp;
-    tmp = (TrackFitter::PosY[i] - tempTrack.getY()) / TrackFitter::ErrorsY[i];
-    chi2 += tmp * tmp;
+    tmp = TrackFitter::PosX[i] - tempTrack.getX();
+    chi2 += tmp*tmp / TrackFitter::ErrorsX[i];
+    tmp = TrackFitter::PosY[i] - tempTrack.getY();
+    chi2 += tmp*tmp / TrackFitter::ErrorsY[i];
     i++;
   }
   fval = chi2;

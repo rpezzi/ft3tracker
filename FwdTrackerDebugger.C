@@ -246,6 +246,39 @@ void simFwdTracks(size_t nTracks, float ptMinCut, float ptMax, float etaMin, flo
     TH3Histos[kFT3TrackInvQPtPullPtEta]->Fill(Pt_MC, std::abs(eta_MC), d_invQPt / sqrt(ft3ProbeTr.getCovariances()(4, 4)));
     TH3Histos[kFT3TrackInvQPtResolutionPtEta]->Fill(Pt_MC, std::abs(eta_MC), (invQPt_Fit - invQPt_MC) / invQPt_MC);
   }
+
+  // InvPtResolution vs eta MC Debuger
+  auto CPtResInvPt = new TCanvas("PtResVsPt", "PtResVsPt", 1080, 1080);
+
+  auto& FT3TrackInvQPtResolutionPtEtaDBG = TH3Histos[kFT3TrackInvQPtPullPtEta];
+  FT3TrackInvQPtResolutionPtEtaDBG->GetYaxis()->SetRange(0, 0);
+
+  int marker = kFullCircle;
+  std::vector<double> ptList({1, 9.});
+  double ptWindow = 1.2;
+
+  for (auto ptmin : ptList) {
+    auto ptmax = ptmin + ptWindow;
+
+    FT3TrackInvQPtResolutionPtEtaDBG->GetXaxis()->SetRangeUser(ptmin, ptmax);
+
+    auto title = Form("_%1.2f_%1.2f_yz", ptmin, ptmax);
+    auto aDBG = (TH2F*)FT3TrackInvQPtResolutionPtEtaDBG->Project3D(title);
+    aDBG->GetXaxis()->SetRangeUser(0, 0);
+
+    aDBG->FitSlicesX(0, 0, -1, 1);
+    auto th2InvPtResolutionEtaDBG = (TH1F*)gDirectory->Get((std::string(aDBG->GetName()) + std::string("_2")).c_str());
+    th2InvPtResolutionEtaDBG->SetTitle(Form("MC_DBG: %1.2f < p_t < %1.2f (w.o.MCS)", ptmin, ptmax));
+    th2InvPtResolutionEtaDBG->SetMarkerStyle(marker++);
+    th2InvPtResolutionEtaDBG->SetLineStyle(kDashed);
+    th2InvPtResolutionEtaDBG->SetStats(0);
+    th2InvPtResolutionEtaDBG->Draw("PLC PMC same");
+  }
+  CPtResInvPt->BuildLegend();
+  CPtResInvPt->SetTicky();
+  CPtResInvPt->SetGridy();
+  CPtResInvPt->Write();
+  CPtResInvPt->Print("PtResVsPt.png");
 }
 
 void setSeedCovariances(FT3Track& track)

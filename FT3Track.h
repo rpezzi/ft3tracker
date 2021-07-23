@@ -96,7 +96,7 @@ inline void FT3Track::sort()
 
   // Sorting hit data
   std::sort(points.begin(), points.end(),
-            [](HitData a, HitData b) { return a.z > b.z; });
+            [](HitData a, HitData b) { return std::abs(a.z) < std::abs(b.z); });
 
   // Storing sorted hit data
   for (auto point = 0; point < (int)getNumberOfPoints(); ++point) {

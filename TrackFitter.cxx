@@ -94,11 +94,11 @@ bool TrackFitter::initTrack(FT3Track& track, bool outward)
 {
 
   // initialize the starting track parameters
-  double x0;
-  double y0;
-  double z0;
-  double sigmainvQPtsq;
-  double chi2invqptquad = 0;
+  Double_t x0;
+  Double_t y0;
+  Double_t z0;
+  Double_t sigmainvQPtsq;
+  Double_t chi2invqptquad = 0;
   auto invQPt0 = invQPtFromFCF(track, mBZField, sigmainvQPtsq);
 
   auto nPoints = track.getNumberOfPoints();
@@ -272,7 +272,7 @@ void TrackFitter::MinuitFit(FT3Track& track)
   //log << minuit->GetParName(i) << " = " << minuit->GetParameter(i)<<std::endl;
   //}
 
-  double arglist[100];
+  Double_t arglist[100];
   arglist[0] = 0;
   // set print level
   minuit->ExecuteCommand("SET PRINT", arglist, 2);
@@ -314,8 +314,8 @@ void TrackFitter::MinuitFit(FT3Track& track)
 //_________________________________________________________________________________________________
 void myFitFcn(Int_t&, Double_t*, Double_t& fval, Double_t* p, Int_t)
 {
-  double chi2 = 0;
-  double tmp;
+  Double_t chi2 = 0;
+  Double_t tmp;
 
   //   o2::track::TrackParFwd tempTrack;
   FT3Track tempTrack;
@@ -406,12 +406,12 @@ Double_t invQPtFromFCF(const FT3Track& track, Double_t bFieldZ,
     F4 += fweight[i] * u2 * u2;
   }
 
-  double Rn_det1 = F2 * F4 - F3 * F3;
-  double Rn_det2 = F1 * F4 - F2 * F3;
-  double Rn_det3 = F1 * F3 - F2 * F2;
-  double Pn_det1 = Rn_det2;
-  double Pn_det2 = F0 * F4 - F2 * F2;
-  double Pn_det3 = F0 * F3 - F1 * F2;
+  Double_t Rn_det1 = F2 * F4 - F3 * F3;
+  Double_t Rn_det2 = F1 * F4 - F2 * F3;
+  Double_t Rn_det3 = F1 * F3 - F2 * F2;
+  Double_t Pn_det1 = Rn_det2;
+  Double_t Pn_det2 = F0 * F4 - F2 * F2;
+  Double_t Pn_det3 = F0 * F3 - F1 * F2;
 
   for (int j = 0; j < (nPoints - 1); j++) {
     Rn[j] = fweight[j] *
@@ -471,17 +471,17 @@ Double_t invQPtFromFCF(const FT3Track& track, Double_t bFieldZ,
     invqpt_fcf = qfcf * invpt;
 
     // error calculations:
-    double invA2 = 1. / (A * A);
+    Double_t invA2 = 1. / (A * A);
 
-    double sigmaAsq = SumSRn / (SumRn * SumRn);
-    double sigmaBsq = SumSPn / (SumUPn * SumUPn);
-    double sigmaAB = SumRP / (SumRn * SumUPn);
+    Double_t sigmaAsq = SumSRn / (SumRn * SumRn);
+    Double_t sigmaBsq = SumSPn / (SumUPn * SumUPn);
+    Double_t sigmaAB = SumRP / (SumRn * SumUPn);
 
-    double sigmaasq_FCF =
+    Double_t sigmaasq_FCF =
       TMath::Abs(0.25 * invA2 * invA2 *
                  (B * B * sigmaAsq + A * A * sigmaBsq - A * B * sigmaAB));
-    double sigmabsq_FCF = TMath::Abs(0.25 * invA2 * invA2 * sigmaAsq);
-    double sigma2R =
+    Double_t sigmabsq_FCF = TMath::Abs(0.25 * invA2 * invA2 * sigmaAsq);
+    Double_t sigma2R =
       invR * invR *
       (b * b * sigmaasq_FCF + a * a * sigmabsq_FCF +
        2 * a * b * TMath::Sqrt(sigmaasq_FCF) * TMath::Sqrt(sigmabsq_FCF));

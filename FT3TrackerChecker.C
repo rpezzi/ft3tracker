@@ -159,12 +159,12 @@ int FT3TrackerChecker(const Char_t* trkFile = "ft3tracks.root",
     {kFT3TrackInvPtResolutionPtEta, "FT3TrackInvPtResolutionPtEta"}};
 
   std::map<int, std::array<double, 9>> TH3Binning{
-    {kFT3TrackDeltaYVertexPtEta, {50, 0, 10, 62, 1.7, 4.5, 4e4, -2e4, 2e4}},
-    {kFT3TrackDeltaXVertexPtEta, {50, 0, 10, 62, 1.7, 4.5, 4e4, -2e4, 2e4}},
-    {kFT3TrackPtResolutionPtEta, {50, 0, 10, 62, 1.7, 4.5, 1000, -2, 50}},
-    {kFT3TrackInvQPtPullPtEta, {50, 0, 10, 62, 1.7, 4.5, 200, -5, 5}},
-    {kFT3TrackInvQPtResolutionPtEta, {50, 0, 10, 62, 1.7, 4.5, 2000, -2, 2}},
-    {kFT3TrackInvPtResolutionPtEta, {50, 0, 10, 62, 1.7, 4.5, 2500, -5, 150}}};
+    {kFT3TrackDeltaYVertexPtEta, {105, 0, 21, 62, 1.7, 4.5, 2e4, -1e4, 1e4}},
+    {kFT3TrackDeltaXVertexPtEta, {105, 0, 21, 62, 1.7, 4.5, 2e4, -1e4, 14}},
+    {kFT3TrackPtResolutionPtEta, {105, 0, 21, 62, 1.7, 4.5, 1000, -2, 50}},
+    {kFT3TrackInvQPtPullPtEta, {105, 0, 21, 62, 1.7, 4.5, 200, -5, 5}},
+    {kFT3TrackInvQPtResolutionPtEta, {105, 0, 21, 62, 1.7, 4.5, 2000, -2, 2}},
+    {kFT3TrackInvPtResolutionPtEta, {105, 0, 21, 62, 1.7, 4.5, 2500, -5, 150}}};
 
   std::map<int, const char*> TH3XaxisTitles{
     {kFT3TrackDeltaXVertexPtEta, "p_t"},

@@ -29,8 +29,8 @@ float etamin = 3.8;
 float etamax = 2.6;
 int nEtaPoints = 10;
 float ptmin = 0.1;
-float ptmax = 10;
-int nPtPoints = 100;
+float ptmax = 20;
+int nPtPoints = 200;
 bool FAT_ENABLED = true;
 
 // Estimages pt and vertexing resolution from TH3 histograms produced by FT3TrackerChecker
@@ -51,8 +51,8 @@ void FT3HistoProfilerFat_andMCDebuger(float sigma = 8.44e-4) // ; //1e-6;//  8.4
 
   std::vector<double> etaList({3.6, 3.2, 2.7});
   std::vector<double> etaListFAT({3.6 + 0.5 * etaWindow, 3.2 + 0.5 * etaWindow, 2.7 + 0.5 * etaWindow});
-  std::vector<double> ptList({0.2, 9.});
-  std::vector<double> ptListFAT({0.2 + 0.5 * ptWindow, 9. + 0.5 * ptWindow});
+  std::vector<double> ptList({0.2, 1.0, 9., 20});
+  std::vector<double> ptListFAT({0.2 + 0.5 * ptWindow, 1.0 + 0.5 * ptWindow, 9. + 0.5 * ptWindow, 20. + 0.5 * ptWindow});
 
   // Tracks with 7 hits minium
   bool Min7Hits = false;
@@ -123,9 +123,9 @@ void FT3HistoProfilerFat_andMCDebuger(float sigma = 8.44e-4) // ; //1e-6;//  8.4
     auto th2InvPtResolution = (TH1F*)gDirectory->Get((std::string(a->GetName()) + std::string("_2")).c_str());
     th2InvPtResolution->SetTitle(Form("\\text{O2Sim: } %1.2f < \\eta < %1.2f", etamin, etamax));
     th2InvPtResolution->SetMarkerStyle(marker++);
-
     th2InvPtResolution->SetStats(0);
     th2InvPtResolution->Draw("PLC PMC same");
+    th2InvPtResolution->Write();
   }
 
   // InvPtResolution vs pt MC Debuger
@@ -203,9 +203,9 @@ void FT3HistoProfilerFat_andMCDebuger(float sigma = 8.44e-4) // ; //1e-6;//  8.4
     auto th2InvPtResolutionEta = (TH1F*)gDirectory->Get((std::string(a->GetName()) + std::string("_2")).c_str());
     th2InvPtResolutionEta->SetTitle(Form("O2Sim: %1.2f < p_t < %1.2f", ptmin, ptmax));
     th2InvPtResolutionEta->SetMarkerStyle(marker++);
-
     th2InvPtResolutionEta->SetStats(0);
     th2InvPtResolutionEta->Draw("PLC PMC same");
+    th2InvPtResolutionEta->Write();
   }
 
   // InvPtResolution vs eta MC Debuger
@@ -250,7 +250,6 @@ void FT3HistoProfilerFat_andMCDebuger(float sigma = 8.44e-4) // ; //1e-6;//  8.4
   CPtResInvPtEta->Print("PtResVsEta.png");
   //profilerFileOut->Close();
 
-  /*
   // FAT X vertexing resolution vs. eta
   auto CPtResVertEta = new TCanvas();
   if (FAT_ENABLED) {
@@ -271,7 +270,7 @@ void FT3HistoProfilerFat_andMCDebuger(float sigma = 8.44e-4) // ; //1e-6;//  8.4
     vtxXResGraphsEta->Draw("A PLC");
   }
 
-  //
+  /*
   // Vertexing resolution vs eta
   auto FT3TrackDeltaXVertexPtEta = (TH3F*)chkFileIn->Get("MoreHistos/FT3TrackDeltaXVertexPtEta");
   FT3TrackDeltaXVertexPtEta->GetYaxis()->SetRange(0, 0);
@@ -279,7 +278,6 @@ void FT3HistoProfilerFat_andMCDebuger(float sigma = 8.44e-4) // ; //1e-6;//  8.4
   FT3TrackDeltaXVertexPtEta->RebinY(2);
 
   marker = kFullCircle;
-  first = true;
   for (auto ptmin : ptList) {
 
     auto ptmax = ptmin + ptWindow;
@@ -294,19 +292,11 @@ void FT3HistoProfilerFat_andMCDebuger(float sigma = 8.44e-4) // ; //1e-6;//  8.4
     th2VertEta->SetTitle(Form("%1.2f < p_t < %1.2f", ptmin, ptmax));
     th2VertEta->SetMarkerStyle(marker++);
     th2VertEta->SetStats(0);
-    if (FAT_ENABLED) {
-      th2VertEta->Draw("PLC PMC same");
-    } else {
-      if (first) {
-        th2VertEta->GetYaxis()->SetTitle("\\sigma_x \\text{ @ vertex} (\\mu m) ");
-        th2VertEta->GetXaxis()->SetTitle("\\eta");
-        th2VertEta->Draw("PLC PMC");
-        first = false;
-      } else
-        th2VertEta->Draw("PLC PMC same");
-    }
+    th2VertEta->Draw("PLC PMC same");
+    th2VertEta->Write();
   }
   CPtResVertEta->BuildLegend();
+  */
   auto CVertexResEta = new TCanvas();
 
   // FAT vertexing resolution vs. pt
@@ -332,12 +322,11 @@ void FT3HistoProfilerFat_andMCDebuger(float sigma = 8.44e-4) // ; //1e-6;//  8.4
   }
 
   // Vertexing resolution vs pt
-  FT3TrackDeltaXVertexPtEta = (TH3F*)chkFileIn->Get("MoreHistos/FT3TrackDeltaXVertexPtEta");
+  auto FT3TrackDeltaXVertexPtEta = (TH3F*)chkFileIn->Get("MoreHistos/FT3TrackDeltaXVertexPtEta");
   FT3TrackDeltaXVertexPtEta->GetYaxis()->SetRange(0, 0);
   FT3TrackDeltaXVertexPtEta->GetXaxis()->SetRange(0, 0);
 
   marker = kFullCircle;
-  first = true;
   for (auto etamin : etaList) { // 10 Hits
     auto etamax = etamin + etaWindow;
     FT3TrackDeltaXVertexPtEta->GetYaxis()->SetRangeUser(etamin, etamax);
@@ -349,18 +338,8 @@ void FT3HistoProfilerFat_andMCDebuger(float sigma = 8.44e-4) // ; //1e-6;//  8.4
     th2VertResolutionPt->SetTitle(Form("%1.3f < \\eta < %1.3f", etamin, etamax));
     th2VertResolutionPt->SetMarkerStyle(marker++);
     th2VertResolutionPt->SetStats(0);
-    if (FAT_ENABLED) {
-      th2VertResolutionPt->Draw("PLC PMC same");
-    } else {
-      if (first) {
-        th2VertResolutionPt->GetYaxis()->SetTitle("\\sigma_x \\text{ @ vertex} (\\mu m) ");
-        th2VertResolutionPt->GetXaxis()->SetTitle("p_t (GeV/c)");
-        th2VertResolutionPt->Draw("PLC PMC");
-        first = false;
-      } else
-        th2VertResolutionPt->Draw("PLC PMC same");
-    }
+    th2VertResolutionPt->Draw("PLC PMC same");
+    th2VertResolutionPt->Write();
   }
   CVertexResEta->BuildLegend();
-  */
 }

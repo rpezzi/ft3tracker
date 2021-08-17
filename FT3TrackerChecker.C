@@ -674,7 +674,7 @@ int FT3TrackerChecker(const Char_t* trkFile = "ft3tracks.root",
   // FT3 Tracks
   TFile* trkFileIn = new TFile(trkFile);
   TTree* ft3TrackTree = (TTree*)trkFileIn->Get("o2sim");
-  std::vector<o2::mft::TrackMFT> trackFT3Vec, *trackFT3VecP = &trackFT3Vec;
+  std::vector<o2::ft3::FT3TrackExt> trackFT3Vec, *trackFT3VecP = &trackFT3Vec;
   ft3TrackTree->SetBranchAddress("FT3Track", &trackFT3VecP);
 
   vector<Int_t>* recoTrackIDs = nullptr;
@@ -736,7 +736,7 @@ int FT3TrackerChecker(const Char_t* trkFile = "ft3tracks.root",
           Q_MC = 0;
           // std::cout << " => pdgcode ERROR " << Q_MC <<  "\n";
         }
-        auto invQPt_MC = 1.0*Q_MC/thisTrack->GetPt();
+        auto invQPt_MC = 1.0 * Q_MC / thisTrack->GetPt();
 
         trackFT3.propagateToZhelix(vz_MC, field_z);
 

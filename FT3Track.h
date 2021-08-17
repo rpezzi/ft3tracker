@@ -25,7 +25,21 @@ namespace ft3
 
 using o2::itsmft::Hit;
 
-class FT3Track : public o2::mft::TrackMFT
+class FT3TrackExt : public o2::mft::TrackMFT
+{
+
+ public:
+  Int_t getTrackID() const { return mTrackID; }
+  void setTrackID(Int_t l) { mTrackID = l; }
+  Int_t getEventID() const { return mEventID; }
+  void setEventID(Int_t e) { mEventID = e; }
+
+ private:
+  Int_t mTrackID;
+  Int_t mEventID;
+};
+
+class FT3Track : public o2::ft3::FT3TrackExt
 {
  public:
   FT3Track() = default;
@@ -110,4 +124,10 @@ inline void FT3Track::sort()
 
 } // namespace ft3
 } // namespace o2
+
+#pragma link C++ class o2::ft3::FT3Track + ;
+#pragma link C++ class std::vector < o2::ft3::FT3Track> + ;
+#pragma link C++ class o2::ft3::FT3TrackExt + ;
+#pragma link C++ class std::vector < o2::ft3::FT3TrackExt> + ;
+
 #endif /* O2_FT3_TRACK_H_ */

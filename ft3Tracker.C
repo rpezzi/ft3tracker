@@ -31,7 +31,7 @@ void ft3Tracker(Double_t clResolution = 8.44e-4, bool verbose = false) // clReso
   std::string tr3Tracksfile = "ft3tracks.root";
 
   vector<map<int, FT3Track>> allFwdTracks;
-  vector<vector<o2::mft::TrackMFT>> recoFwdTracks;
+  vector<vector<o2::ft3::FT3TrackExt>> recoFwdTracks;
   vector<vector<Int_t>> recoFwdTrackIDs;
 
   TFile* HitFileIn = new TFile(hitfile.c_str());
@@ -64,12 +64,14 @@ void ft3Tracker(Double_t clResolution = 8.44e-4, bool verbose = false) // clReso
       Int_t myID = thisHit->GetTrackID();
       FwdTracksMap[myID] = FwdTracksMap[myID];
       FwdTracksMap[myID].addHit(*thisHit, iHit, clResolution, true);
+      FwdTracksMap[myID].setEventID(event);
+      FwdTracksMap[myID].setTrackID(myID);
     }
   }
 
   TFile* FT3TracksFileOut = new TFile(tr3Tracksfile.c_str(), "RECREATE");
   TTree* FT3Tree = new TTree("o2sim", "Tree with FT3 Tracks");
-  vector<o2::mft::TrackMFT>* recoTracks;
+  vector<o2::ft3::FT3TrackExt>* recoTracks;
   vector<Int_t>* recoTrackIDs;
   FT3Tree->Branch("FT3Track", &recoTracks);
   FT3Tree->Branch("FT3TrackID", &recoTrackIDs);

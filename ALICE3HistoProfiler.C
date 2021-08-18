@@ -21,12 +21,15 @@
 // Estimages pt and vertexing resolution from TH3 histograms produced by FT3TrackerChecker
 //
 //_________________________________________________________________________________________
-void FT3HistoProfiler(const Char_t* FittercheckFile = "Fittercheck_ft3tracks.root")
+void ALICE3HistoProfiler(const Char_t* FittercheckFile = "Fittercheck_ALICE3tracks.root")
 {
   gStyle->SetHistLineWidth(3);
   gStyle->SetFrameLineWidth(3);
   gStyle->SetLineWidth(3);
   gStyle->SetPalette(107);
+  gStyle->SetPadTickX(1);
+  gStyle->SetPadTickY(1);
+  gStyle->SetPadGridY(1);
   TFile* chkFileIn = new TFile(FittercheckFile);
   auto FT3TrackPtResolutionPtEta = (TH3F*)chkFileIn->Get("MoreHistos/FT3TrackPtResolutionPtEta");
   //auto C3D = new TCanvas();
@@ -35,7 +38,7 @@ void FT3HistoProfiler(const Char_t* FittercheckFile = "Fittercheck_ft3tracks.roo
   bool first = true;
   auto CPtRes = new TCanvas();
   int marker = kFullCircle;
-  for (auto etamin : {2.8, 2.9, 3.0, 3.1, 3.2, 3.3, 3.4, 3.5}) {
+  for (auto etamin : {0.5, 0.9, 1.9, 2.9, 3.8}) {
     auto etamax = etamin + 0.1;
 
     FT3TrackPtResolutionPtEta->GetYaxis()->SetRangeUser(etamin, etamax);
@@ -69,9 +72,7 @@ void FT3HistoProfiler(const Char_t* FittercheckFile = "Fittercheck_ft3tracks.roo
   first = true;
   auto CPtResInvPy = new TCanvas();
   marker = kFullCircle;
-  for (auto etamin : {2.8, 2.9, 3.0, 3.1, 3.2, 3.3, 3.4, 3.5}) { // 10 Hits
-    //for (auto etamin : {2.4, 2.5, 2.6, 2.7, 2.8, 2.9, 3.0, 3.1, 3.2, 3.3, 3.4, 3.5}) { // 7 Hits
-
+  for (auto etamin : {0.5, 0.9, 1.9, 2.9, 3.8}) {
     auto etamax = etamin + 0.1;
 
     FT3TrackInvQPtResolutionPtEta->GetYaxis()->SetRangeUser(etamin, etamax);
@@ -155,7 +156,7 @@ void FT3HistoProfiler(const Char_t* FittercheckFile = "Fittercheck_ft3tracks.roo
   auto CPtResVertEta = new TCanvas();
   marker = kFullCircle;
   //for (auto ptmin : {1., 2., 4., 6., 8., 9.}) {
-  for (auto ptmin : {1., 2., 4., 6., 9.}) {
+  for (auto ptmin : {1., 2., 4., 6., 9., 15., 20.}) {
 
     auto ptmax = ptmin + 0.5;
 
@@ -198,9 +199,7 @@ void FT3HistoProfiler(const Char_t* FittercheckFile = "Fittercheck_ft3tracks.roo
   first = true;
   auto CVertexResEta = new TCanvas();
   marker = kFullCircle;
-  for (auto etamin : {2.8, 2.9, 3.0, 3.1, 3.2, 3.3, 3.4, 3.5}) { // 10 Hits
-    //for (auto etamin : {2.4, 2.5, 2.6, 2.7, 2.8, 2.9, 3.0, 3.1, 3.2, 3.3, 3.4, 3.5}) { // 7 Hits
-
+  for (auto etamin : {0.5, 0.9, 1.9, 2.9, 3.8}) {
     auto etamax = etamin + 0.1;
 
     FT3TrackDeltaXVertexPtEta->GetYaxis()->SetRangeUser(etamin, etamax);

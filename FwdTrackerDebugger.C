@@ -66,7 +66,7 @@ void FwdTrackerDebugger(size_t nTracks = 1000,
   clSigma = clSigma_;
   enableClusterSmearing = enableClusterSmearing_;
 
-  Double_t ptMax = 10.0;
+  Double_t ptMax = 21.0;
   Double_t ptMin = 0.1;
   Double_t etaMin = -3.8;
   Double_t etaMax = -0.85;
@@ -215,11 +215,11 @@ void simFwdTracks(size_t nTracks, float ptMinCut, float ptMax, float etaMin, flo
     //std::cout << std::endl;
     if (DEBUG_VERBOSE)
       // std::cout << std::endl;
-    ft3ProbeTr.sort();
+      ft3ProbeTr.sort();
 
     fitter.initTrack(ft3ProbeTr, true);
     setSeedCovariances(ft3ProbeTr);
-    //fitter.MinuitFit(ft3ProbeTr); 
+    //fitter.MinuitFit(ft3ProbeTr);
     fitter.fit(ft3ProbeTr);
     if (DEBUG_qpt)
       std::cout << "Track " << i << ": \n    q/pt_MC = " << MCTrack.getInvQPt() << "\n    q/pt_Seed = " << ft3ProbeTr.getInvQPtSeed() << "\n    q/pt_fit = " << ft3ProbeTr.getInvQPt() << std::endl;

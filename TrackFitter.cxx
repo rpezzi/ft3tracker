@@ -448,8 +448,8 @@ Double_t invQPtFromFCF(const FT3Track& track, Double_t bFieldZ,
     // rotate around the first point (0,0) to bring the last point
     // on the x axis (y = 0) and check the y sign of the rotated
     // center of the circle
-    Double_t x = xVal[nPoints - 1], y = yVal[nPoints - 1],
-             z = zVal[nPoints - 1];
+    Double_t x = xVal[1], y = yVal[1],
+             z = zVal[1];
     Double_t slope = TMath::ATan2(y, x);
     Double_t cosSlope = TMath::Cos(slope);
     Double_t sinSlope = TMath::Sin(slope);

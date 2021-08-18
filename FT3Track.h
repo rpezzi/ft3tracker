@@ -33,10 +33,16 @@ class FT3TrackExt : public o2::mft::TrackMFT
   void setTrackID(Int_t l) { mTrackID = l; }
   Int_t getEventID() const { return mEventID; }
   void setEventID(Int_t e) { mEventID = e; }
+  Int_t getNTRKHits() const { return nTRKHits; }
+  Int_t getNFT3Hits() const { return nFT3Hits; }
+  void countTRKHit() { nTRKHits++; }
+  void countFT3Hit() { nFT3Hits++; }
 
  private:
-  Int_t mTrackID;
-  Int_t mEventID;
+  Int_t mTrackID = -1;
+  Int_t mEventID = -1;
+  Int_t nFT3Hits = 0;
+  Int_t nTRKHits = 0;
 };
 
 class FT3Track : public o2::ft3::FT3TrackExt
@@ -53,6 +59,7 @@ class FT3Track : public o2::ft3::FT3TrackExt
   const std::vector<Int_t>& getLayers() const { return mLayer; }
   const std::vector<Int_t>& getHitsId() const { return mHitId; }
   void addHit(const Hit& ht, const Int_t hitId, const Float_t sigma, Bool_t smear);
+  void addTRKHit(const Hit& ht, const Int_t hitId, const Float_t sigma, Bool_t smear);
   void sort();
 
  private:
@@ -68,20 +75,47 @@ class FT3Track : public o2::ft3::FT3TrackExt
 };
 
 //_________________________________________________________________________________________________
-inline void FT3Track::addHit(const Hit& ht, const Int_t hitId, const Float_t sigma = 8.44e-4, Bool_t smear = true)
+inline void FT3Track::addHit(const Hit& ht, const Int_t hitId, const Float_t sigma = 10.e-4, Bool_t smear = true)
 {
   TRandom3 rnd(0);
   auto x = ht.GetStartX() + (smear ? rnd.Gaus(0, sigma) : 0);
   auto y = ht.GetStartY() + (smear ? rnd.Gaus(0, sigma) : 0);
+  auto z = ht.GetStartZ(); // + (smear ? rnd.Gaus(0, sigma) : 0);
   auto sigma2 = sigma * sigma;
   mX.emplace_back(x);
   mY.emplace_back(y);
-  mZ.emplace_back(ht.GetStartZ());
+  mZ.emplace_back(z);
   mSigmaX2.emplace_back(sigma2);
   mSigmaY2.emplace_back(sigma2);
   mLayer.emplace_back(ht.GetDetectorID());
   mHitId.emplace_back(hitId);
   setNumberOfPoints(mX.size());
+  countFT3Hit();
+}
+
+//_________________________________________________________________________________________________
+inline void FT3Track::addTRKHit(const Hit& ht, const Int_t hitId, const Float_t sigma_ = 10.e-4, Bool_t smear = true)
+{
+  if (getNumberOfPoints() > 20) { // Loopers
+    return;
+  }
+  TRandom3 rnd(0);
+  auto x = ht.GetStartX();
+  auto y = ht.GetStartY();
+  Float_t sigma = (x * x + y * y > 9.0) ? sigma_ : sigma_ / 4.0;
+  x = ht.GetStartX() + (smear ? rnd.Gaus(0, sigma / std::sqrt(2)) : 0);
+  y = ht.GetStartY() + (smear ? rnd.Gaus(0, sigma / std::sqrt(2)) : 0);
+  auto z = ht.GetStartZ() + (smear ? rnd.Gaus(0, sigma) : 0);
+  auto sigma2 = sigma * sigma;
+  mX.emplace_back(x);
+  mY.emplace_back(y);
+  mZ.emplace_back(z);
+  mSigmaX2.emplace_back(sigma2);
+  mSigmaY2.emplace_back(sigma2);
+  mLayer.emplace_back(ht.GetDetectorID());
+  mHitId.emplace_back(hitId);
+  setNumberOfPoints(mX.size());
+  countTRKHit();
 }
 
 //_________________________________________________________________________________________________

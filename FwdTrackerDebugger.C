@@ -102,10 +102,10 @@ void FwdTrackerDebugger(size_t nTracks = 1000,
     {kFT3TrackInvQPtResolutionPtEta, "FT3DBGTrackInvQPtResolutionPtEta"}};
 
   std::map<int, std::array<double, 9>> TH3Binning{
-    {kFT3TrackDeltaXVertexPtEta, {20, 0, 10, 84, 1.7, 4.5, 4e4, -2e4, 2e4}},
-    {kFT3TrackDeltaYVertexPtEta, {50, 0, 10, 84, 1.7, 4.5, 4e4, -2e4, 2e4}},
+    {kFT3TrackDeltaXVertexPtEta, {20, 0, 10, 84, 1.7, 4.5, 500, -500, 500}},
+    {kFT3TrackDeltaYVertexPtEta, {50, 0, 10, 84, 1.7, 4.5, 500, -500, 500}},
     {kFT3TrackInvQPtPullPtEta, {200, 0, 20, 84, 1.7, 4.5, 200, -5, 5}},
-    {kFT3TrackInvQPtResolutionPtEta, {200, 0, 20, 84, 1.7, 4.5, 1000, -1, 1}}};
+    {kFT3TrackInvQPtResolutionPtEta, {200, 0, 20, 84, 1.7, 4.5, 100, -1, 1}}};
 
   std::map<int, const char*> TH3XaxisTitles{
     {kFT3TrackDeltaXVertexPtEta, "p_t"},
@@ -213,11 +213,11 @@ void simFwdTracks(size_t nTracks, float ptMinCut, float ptMax, float etaMin, flo
       nLayer++;
     }
     //std::cout << std::endl;
-    if (DEBUG_VERBOSE)
-      // std::cout << std::endl;
-      ft3ProbeTr.sort();
+    //if (DEBUG_VERBOSE)
+    // std::cout << std::endl;
+    ft3ProbeTr.sort();
 
-    fitter.initTrack(ft3ProbeTr, true);
+    fitter.initTrack(ft3ProbeTr);
     setSeedCovariances(ft3ProbeTr);
     //fitter.MinuitFit(ft3ProbeTr);
     fitter.fit(ft3ProbeTr);
@@ -230,11 +230,11 @@ void simFwdTracks(size_t nTracks, float ptMinCut, float ptMax, float etaMin, flo
     probe = (o2::mft::TrackMFT)ft3ProbeTr;
     trkDBGTree->Fill();
 
-    auto vx_MC = MCTrack.getX();
-    auto vy_MC = MCTrack.getY();
-    auto invQPt_MC = MCTrack.getInvQPt();
-    auto Pt_MC = MCTrack.getPt();
-    auto eta_MC = MCTrack.getEta();
+    auto vx_MC = MCTrack_.getX();
+    auto vy_MC = MCTrack_.getY();
+    auto invQPt_MC = MCTrack_.getInvQPt();
+    auto Pt_MC = MCTrack_.getPt();
+    auto eta_MC = MCTrack_.getEta();
 
     auto dx = ft3ProbeTr.getX() - vx_MC;
     auto dy = ft3ProbeTr.getY() - vy_MC;

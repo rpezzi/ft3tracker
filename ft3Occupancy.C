@@ -15,13 +15,13 @@ bool DEBUG_VERBOSE = false;
 
 // Hit density scaled according to QED cross section on pureQED events
 // And number of directions (Backward and/or Forward layers)
-Float_t xSectionQED = 35077.6;
+Float_t xSectionQED = 29533.4;
 Float_t xSectionHad = 8;
-Bool_t pureQED = false;
+Bool_t pureQED = true;
 Float_t QEDScale = pureQED ? xSectionQED / xSectionHad : 1.0;
-std::set<int> computeDirections = {0,1}; // Directions on which to compute hits
-                                         // direction == 1 => Forward layers
-                                         // direction == 0 => Backward layers
+std::set<int> computeDirections = {1};                 // Directions on which to compute hits
+                                                       // direction == 1 => Forward layers
+                                                       // direction == 0 => Backward layers
 Float_t nDirectionsScaling = computeDirections.size(); // Histogram scales according to number of directions
 
 void ft3Occupancy() {
